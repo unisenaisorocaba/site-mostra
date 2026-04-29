@@ -46,12 +46,23 @@ export default function Evaluations() {
     initialData: [],
   });
 
-  const { data: myCriteria } = useQuery({
-    queryKey: ["my-criteria", user?.email],
-    queryFn: () => base44.entities.EvaluationCriteria.filter({ owner_email: user.email }, "name"),
+  const { data: myCriteriaLists } = useQuery({
+    queryKey: ["my-criteria-lists", user?.email],
+    queryFn: () => base44.entities.CriteriaList.filter({ owner_email: user.email }, "name"),
     enabled: !!user && isTeacher,
     initialData: [],
   });
+
+  // Flatten all criteria from all lists, keeping list name as context
+  const allCriteria = (myCriteriaLists || []).flatMap((list) =>
+    (list.criteria || []).map((c, i) => ({
+      id: `${list.id}__${i}`,
+      name: c.name,
+      description: c.description,
+      weight: c.weight || 1,
+      listName: list.name,
+    }))
+  );
 
   const { data: myEvaluations } = useQuery({
     queryKey: ["my-evaluations"],
@@ -104,14 +115,14 @@ export default function Evaluations() {
     if (!selectedProjectId || !declared) return;
 
     if (isTeacher) {
-      if (selectedCriteriaIds.length === 0) {
-        toast({ title: "Selecione pelo menos um critério!", variant: "destructive" });
-        return;
-      }
-      const criteriaScores = selectedCriteriaIds.map((id) => {
-        const c = myCriteria.find((x) => x.id === id);
-        return { criteria_id: id, criteria_name: c?.name || id, score: dynamicScores[id] ?? 5 };
-      });
+    if (selectedCriteriaIds.length === 0) {
+      toast({ title: "Selecione pelo menos um critério!", variant: "destructive" });
+      return;
+    }
+    const criteriaScores = selectedCriteriaIds.map((id) => {
+      const c = allCriteria.find((x) => x.id === id);
+      return { criteria_id: id, criteria_name: c?.name || id, score: dynamicScores[id] ?? 5 };
+    });
       createEval.mutate({ project_id: selectedProjectId, criteria_scores: criteriaScores, comments, evaluation_type: "professor" });
     } else {
       createEval.mutate({ project_id: selectedProjectId, ...bannerScores, comments, evaluation_type: "aluno" });
@@ -259,10 +270,10 @@ export default function Evaluations() {
             {/* TEACHER: dynamic criteria selection + scoring */}
             {isTeacher ? (
               <>
-                {myCriteria.length === 0 ? (
+                {allCriteria.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-border">
-                    <p className="text-sm text-muted-foreground mb-2">Você ainda não tem critérios cadastrados.</p>
-                    <a href="/dashboard/criterios" className="text-primary text-sm font-bold underline">Cadastrar critérios</a>
+                    <p className="text-sm text-muted-foreground mb-2">Você ainda não tem listas de critérios cadastradas.</p>
+                    <a href="/dashboard/criterios" className="text-primary text-sm font-bold underline">Cadastrar listas</a>
                   </div>
                 ) : (
                   <>
@@ -270,35 +281,43 @@ export default function Evaluations() {
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
                         Escolha os critérios para este projeto
                       </p>
-                      <div className="space-y-2">
-                        {myCriteria.map((c) => {
-                          const selected = selectedCriteriaIds.includes(c.id);
-                          return (
-                            <button key={c.id} onClick={() => toggleCriteria(c.id)}
-                              className={`w-full text-left p-4 border-2 transition-all flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
-                              {selected ? <CheckSquare className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" /> : <Square className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
-                              <div>
-                                <span className="font-bold text-sm block">{c.name}</span>
-                                {c.description && <span className="text-xs text-muted-foreground">{c.description}</span>}
-                              </div>
-                              <span className="ml-auto text-[10px] font-bold text-muted-foreground flex-shrink-0">Peso {c.weight || 1}x</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {/* Group by list */}
+                      {(myCriteriaLists || []).filter(l => (l.criteria || []).length > 0).map((list) => (
+                        <div key={list.id} className="mb-4">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 px-1">{list.name}</p>
+                          <div className="space-y-1.5">
+                            {(list.criteria || []).map((c, i) => {
+                              const id = `${list.id}__${i}`;
+                              const selected = selectedCriteriaIds.includes(id);
+                              return (
+                                <button key={id} onClick={() => toggleCriteria(id)}
+                                  className={`w-full text-left p-3 border-2 transition-all flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
+                                  {selected ? <CheckSquare className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" /> : <Square className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
+                                  <div>
+                                    <span className="font-bold text-sm block">{c.name}</span>
+                                    {c.description && <span className="text-xs text-muted-foreground">{c.description}</span>}
+                                  </div>
+                                  <span className="ml-auto text-[10px] font-bold text-muted-foreground flex-shrink-0">Peso {c.weight || 1}x</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {/* Score sliders for selected criteria */}
                     {selectedCriteriaIds.length > 0 && (
                       <div className="space-y-8 pt-4 border-t border-muted">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Notas</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Notas ({selectedCriteriaIds.length} critério{selectedCriteriaIds.length !== 1 ? "s" : ""} selecionado{selectedCriteriaIds.length !== 1 ? "s" : ""})</p>
                         {selectedCriteriaIds.map((id, idx) => {
-                          const c = myCriteria.find((x) => x.id === id);
+                          const c = allCriteria.find((x) => x.id === id);
                           const score = dynamicScores[id] ?? 5;
                           return (
                             <section key={id}>
                               <div className="flex justify-between items-start mb-3">
                                 <div className="flex-1 pr-4">
+                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{c?.listName}</span>
                                   <h4 className="font-bold text-base">{idx + 1}. {c?.name}</h4>
                                   {c?.description && <p className="text-sm text-muted-foreground mt-1">{c.description}</p>}
                                 </div>
