@@ -12,6 +12,7 @@ import {
   Users,
   UsersRound,
   Mic,
+  ListChecks,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
@@ -27,12 +28,14 @@ const studentNavItems = [
 const teacherNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 
 const adminNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },
   { label: "Usuários", path: "/dashboard/usuarios", icon: Users },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },

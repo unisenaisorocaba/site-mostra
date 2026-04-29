@@ -15,6 +15,7 @@ import PublicPhotos from '@/pages/PublicPhotos';
 import Dashboard from '@/pages/Dashboard';
 import MyProjects from '@/pages/MyProjects';
 import Evaluations from '@/pages/Evaluations';
+import MyCriteria from '@/pages/MyCriteria';
 import ManagePhotos from '@/pages/ManagePhotos';
 import Groups from '@/pages/Groups';
 import UserManagement from '@/pages/admin/UserManagement';
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/projetos" element={<MyProjects />} />
         <Route path="/dashboard/avaliacoes" element={<Evaluations />} />
+        <Route path="/dashboard/criterios" element={<MyCriteria />} />
         <Route path="/dashboard/fotos" element={<ManagePhotos />} />
         <Route path="/dashboard/grupos" element={<Groups />} />
         <Route path="/dashboard/usuarios" element={<UserManagement />} />
