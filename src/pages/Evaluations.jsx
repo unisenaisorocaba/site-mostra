@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Star, ChevronRight, CheckSquare, Square } from "lucide-react";
+import { Star, ChevronRight } from "lucide-react";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
@@ -19,7 +19,7 @@ const BANNER_CRITERIA = [
 
 export default function Evaluations() {
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
+  const [selectedListId, setSelectedListId] = useState("");
   const [dynamicScores, setDynamicScores] = useState({});
   const [bannerScores, setBannerScores] = useState({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
   const [comments, setComments] = useState("");
@@ -53,16 +53,9 @@ export default function Evaluations() {
     initialData: [],
   });
 
-  // Flatten all criteria from all lists, keeping list name as context
-  const allCriteria = (myCriteriaLists || []).flatMap((list) =>
-    (list.criteria || []).map((c, i) => ({
-      id: `${list.id}__${i}`,
-      name: c.name,
-      description: c.description,
-      weight: c.weight || 1,
-      listName: list.name,
-    }))
-  );
+  // Selected list and its criteria
+  const selectedList = (myCriteriaLists || []).find((l) => l.id === selectedListId);
+  const selectedListCriteria = selectedList?.criteria || [];
 
   const { data: myEvaluations } = useQuery({
     queryKey: ["my-evaluations"],
@@ -73,26 +66,17 @@ export default function Evaluations() {
     initialData: [],
   });
 
-  // Reset criteria selection and scores when project changes
+  // Reset when project changes
   useEffect(() => {
-    setSelectedCriteriaIds([]);
+    setSelectedListId("");
     setDynamicScores({});
     setBannerScores({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
   }, [selectedProjectId]);
 
-  const toggleCriteria = (id) => {
-    setSelectedCriteriaIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-    setDynamicScores((prev) => {
-      if (prev[id] !== undefined) {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      }
-      return { ...prev, [id]: 5 };
-    });
-  };
+  // Reset scores when list changes
+  useEffect(() => {
+    setDynamicScores({});
+  }, [selectedListId]);
 
   const createEval = useMutation({
     mutationFn: async (data) => {
@@ -103,7 +87,7 @@ export default function Evaluations() {
       queryClient.invalidateQueries({ queryKey: ["my-evaluations"] });
       toast({ title: "Avaliação finalizada com sucesso!" });
       setSelectedProjectId("");
-      setSelectedCriteriaIds([]);
+      setSelectedListId("");
       setDynamicScores({});
       setBannerScores({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
       setComments("");
@@ -115,14 +99,15 @@ export default function Evaluations() {
     if (!selectedProjectId || !declared) return;
 
     if (isTeacher) {
-    if (selectedCriteriaIds.length === 0) {
-      toast({ title: "Selecione pelo menos um critério!", variant: "destructive" });
-      return;
-    }
-    const criteriaScores = selectedCriteriaIds.map((id) => {
-      const c = allCriteria.find((x) => x.id === id);
-      return { criteria_id: id, criteria_name: c?.name || id, score: dynamicScores[id] ?? 5 };
-    });
+      if (!selectedListId || selectedListCriteria.length === 0) {
+        toast({ title: "Selecione uma lista de critérios!", variant: "destructive" });
+        return;
+      }
+      const criteriaScores = selectedListCriteria.map((c, i) => ({
+        criteria_id: `${selectedListId}__${i}`,
+        criteria_name: c.name,
+        score: dynamicScores[i] ?? 5,
+      }));
       createEval.mutate({ project_id: selectedProjectId, criteria_scores: criteriaScores, comments, evaluation_type: "professor" });
     } else {
       createEval.mutate({ project_id: selectedProjectId, ...bannerScores, comments, evaluation_type: "aluno" });
@@ -144,7 +129,7 @@ export default function Evaluations() {
     return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
   };
 
-  const canSubmit = selectedProjectId && declared && (isTeacher ? selectedCriteriaIds.length > 0 : true);
+  const canSubmit = selectedProjectId && declared && (isTeacher ? !!selectedListId : true);
 
   return (
     <div>
@@ -262,15 +247,15 @@ export default function Evaluations() {
         <div className="lg:col-span-7 bg-white border border-border">
           <div className="bg-muted/40 border-b border-border px-6 py-5">
             <h3 className="text-lg font-bold font-heading">
-              {isTeacher ? "Selecione os Critérios e Avalie" : "Critérios de Avaliação de Banner"}
+              {isTeacher ? "Selecione a Lista de Critérios e Avalie" : "Critérios de Avaliação de Banner"}
             </h3>
           </div>
 
           <div className="p-8 space-y-8">
-            {/* TEACHER: dynamic criteria selection + scoring */}
+            {/* TEACHER: pick a list, score all its criteria */}
             {isTeacher ? (
               <>
-                {allCriteria.length === 0 ? (
+                {(myCriteriaLists || []).length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-border">
                     <p className="text-sm text-muted-foreground mb-2">Você ainda não tem listas de critérios cadastradas.</p>
                     <a href="/dashboard/criterios" className="text-primary text-sm font-bold underline">Cadastrar listas</a>
@@ -278,53 +263,41 @@ export default function Evaluations() {
                 ) : (
                   <>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                        Escolha os critérios para este projeto
-                      </p>
-                      {/* Group by list */}
-                      {(myCriteriaLists || []).filter(l => (l.criteria || []).length > 0).map((list) => (
-                        <div key={list.id} className="mb-4">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 px-1">{list.name}</p>
-                          <div className="space-y-1.5">
-                            {(list.criteria || []).map((c, i) => {
-                              const id = `${list.id}__${i}`;
-                              const selected = selectedCriteriaIds.includes(id);
-                              return (
-                                <button key={id} onClick={() => toggleCriteria(id)}
-                                  className={`w-full text-left p-3 border-2 transition-all flex items-start gap-3 ${selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
-                                  {selected ? <CheckSquare className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" /> : <Square className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />}
-                                  <div>
-                                    <span className="font-bold text-sm block">{c.name}</span>
-                                    {c.description && <span className="text-xs text-muted-foreground">{c.description}</span>}
-                                  </div>
-                                  <span className="ml-auto text-[10px] font-bold text-muted-foreground flex-shrink-0">Peso {c.weight || 1}x</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Lista de Critérios</Label>
+                      <Select value={selectedListId} onValueChange={setSelectedListId}>
+                        <SelectTrigger className="rounded-none">
+                          <SelectValue placeholder="Selecione uma lista..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(myCriteriaLists || []).filter(l => (l.criteria || []).length > 0).map((list) => (
+                            <SelectItem key={list.id} value={list.id}>
+                              {list.name} ({list.criteria?.length || 0} critérios)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
 
-                    {/* Score sliders for selected criteria */}
-                    {selectedCriteriaIds.length > 0 && (
+                    {/* Score sliders for all criteria in selected list */}
+                    {selectedList && selectedListCriteria.length > 0 && (
                       <div className="space-y-8 pt-4 border-t border-muted">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Notas ({selectedCriteriaIds.length} critério{selectedCriteriaIds.length !== 1 ? "s" : ""} selecionado{selectedCriteriaIds.length !== 1 ? "s" : ""})</p>
-                        {selectedCriteriaIds.map((id, idx) => {
-                          const c = allCriteria.find((x) => x.id === id);
-                          const score = dynamicScores[id] ?? 5;
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          {selectedList.name} · {selectedListCriteria.length} critério{selectedListCriteria.length !== 1 ? "s" : ""}
+                        </p>
+                        {selectedListCriteria.map((c, idx) => {
+                          const score = dynamicScores[idx] ?? 5;
                           return (
-                            <section key={id}>
+                            <section key={idx}>
                               <div className="flex justify-between items-start mb-3">
                                 <div className="flex-1 pr-4">
-                                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{c?.listName}</span>
-                                  <h4 className="font-bold text-base">{idx + 1}. {c?.name}</h4>
-                                  {c?.description && <p className="text-sm text-muted-foreground mt-1">{c.description}</p>}
+                                  <h4 className="font-bold text-base">{idx + 1}. {c.name}</h4>
+                                  {c.description && <p className="text-sm text-muted-foreground mt-1">{c.description}</p>}
+                                  <span className="text-[10px] font-bold text-muted-foreground">Peso {c.weight || 1}x</span>
                                 </div>
                                 <span className="text-2xl font-bold text-primary font-heading">{score}</span>
                               </div>
                               <input type="range" min={0} max={10} step={1} value={score}
-                                onChange={(e) => setDynamicScores((prev) => ({ ...prev, [id]: Number(e.target.value) }))}
+                                onChange={(e) => setDynamicScores((prev) => ({ ...prev, [idx]: Number(e.target.value) }))}
                                 className="w-full h-1 bg-muted rounded-none cursor-pointer"
                                 style={{ accentColor: "hsl(var(--primary))" }}
                               />
