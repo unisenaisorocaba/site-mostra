@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import {
   LayoutDashboard,
   FolderOpen,
@@ -10,13 +9,32 @@ import {
   Menu,
   X,
   ChevronLeft,
+  Users,
+  UsersRound,
+  Mic,
 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 
-const navItems = [
+const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Meu Grupo", path: "/dashboard/grupos", icon: UsersRound },
+  { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
+];
+
+const teacherNavItems = [
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
+];
+
+const adminNavItems = [
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },
+  { label: "Usuários", path: "/dashboard/usuarios", icon: Users },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 
@@ -25,6 +43,19 @@ export default function DashboardLayout() {
   const location = useLocation();
 
   const isActive = (path) => location.pathname === path;
+
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile", user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_email: user.email }, null, 1),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const profile = myProfile?.[0];
+  const isAdmin = user?.role === "admin";
+  const isTeacher = isAdmin || profile?.user_type === "professor";
+  const navItems = isAdmin ? adminNavItems : isTeacher ? teacherNavItems : studentNavItems;
 
   return (
     <div className="min-h-screen bg-muted/30">

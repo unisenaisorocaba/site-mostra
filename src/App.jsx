@@ -16,6 +16,9 @@ import Dashboard from '@/pages/Dashboard';
 import MyProjects from '@/pages/MyProjects';
 import Evaluations from '@/pages/Evaluations';
 import ManagePhotos from '@/pages/ManagePhotos';
+import Groups from '@/pages/Groups';
+import UserManagement from '@/pages/admin/UserManagement';
+import OralSchedule from '@/pages/admin/OralSchedule';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -57,6 +60,9 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard/projetos" element={<MyProjects />} />
         <Route path="/dashboard/avaliacoes" element={<Evaluations />} />
         <Route path="/dashboard/fotos" element={<ManagePhotos />} />
+        <Route path="/dashboard/grupos" element={<Groups />} />
+        <Route path="/dashboard/usuarios" element={<UserManagement />} />
+        <Route path="/dashboard/oral" element={<OralSchedule />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

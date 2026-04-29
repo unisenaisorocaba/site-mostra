@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Descri\u00e7\u00e3o detalhada do projeto"
     },
+    "abstract": {
+      "type": "string",
+      "description": "Resumo do projeto"
+    },
     "category": {
       "type": "string",
       "enum": [
@@ -24,6 +28,10 @@
       ],
       "description": "Categoria do projeto"
     },
+    "team_id": {
+      "type": "string",
+      "description": "ID do grupo associado"
+    },
     "team_name": {
       "type": "string",
       "description": "Nome do grupo/equipe"
@@ -36,7 +44,7 @@
           "name": {
             "type": "string"
           },
-          "ra": {
+          "email": {
             "type": "string"
           }
         }
@@ -49,15 +57,49 @@
     },
     "room": {
       "type": "string",
-      "description": "Sala/local de apresenta\u00e7\u00e3o"
+      "description": "Sala/local de apresenta\u00e7\u00e3o (preenchida por admin)"
+    },
+    "schedule_time": {
+      "type": "string",
+      "description": "Hor\u00e1rio da apresenta\u00e7\u00e3o oral (preenchido por admin)"
+    },
+    "presentation_type": {
+      "type": "string",
+      "enum": [
+        "banner",
+        "oral"
+      ],
+      "default": "banner",
+      "description": "Tipo de apresenta\u00e7\u00e3o desejada pelo aluno"
+    },
+    "oral_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aprovado para apresenta\u00e7\u00e3o oral pelos admins"
     },
     "banner_url": {
       "type": "string",
-      "description": "URL do banner do projeto"
+      "description": "URL do banner do projeto (obrigat\u00f3rio)"
     },
     "thumbnail_url": {
       "type": "string",
       "description": "URL da imagem thumbnail"
+    },
+    "slides_url": {
+      "type": "string",
+      "description": "URL da apresenta\u00e7\u00e3o (slides) para apresenta\u00e7\u00e3o oral"
+    },
+    "article_url": {
+      "type": "string",
+      "description": "URL do artigo cient\u00edfico (PDF)"
+    },
+    "pitch_youtube_url": {
+      "type": "string",
+      "description": "Link do pitch no YouTube"
+    },
+    "github_url": {
+      "type": "string",
+      "description": "Link do reposit\u00f3rio no GitHub"
     },
     "status": {
       "type": "string",
@@ -69,10 +111,6 @@
       ],
       "default": "rascunho",
       "description": "Status da submiss\u00e3o"
-    },
-    "abstract": {
-      "type": "string",
-      "description": "Resumo do projeto"
     },
     "keywords": {
       "type": "array",
