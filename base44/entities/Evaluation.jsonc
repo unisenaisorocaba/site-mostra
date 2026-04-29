@@ -1,0 +1,45 @@
+{
+  "name": "Evaluation",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "ID do projeto avaliado"
+    },
+    "criteria_innovation": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Nota para inova\u00e7\u00e3o"
+    },
+    "criteria_technical": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Nota para qualidade t\u00e9cnica"
+    },
+    "criteria_presentation": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Nota para apresenta\u00e7\u00e3o"
+    },
+    "criteria_relevance": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10,
+      "description": "Nota para relev\u00e2ncia industrial"
+    },
+    "comments": {
+      "type": "string",
+      "description": "Coment\u00e1rios do avaliador"
+    },
+    "evaluator_name": {
+      "type": "string",
+      "description": "Nome do avaliador"
+    }
+  },
+  "required": [
+    "project_id"
+  ]
+}

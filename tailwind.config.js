@@ -4,6 +4,10 @@ module.exports = {
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			heading: ['var(--font-heading)', 'Space Grotesk', 'sans-serif'],
+  			body: ['var(--font-body)', 'Space Grotesk', 'sans-serif'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

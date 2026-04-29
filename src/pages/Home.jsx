@@ -1,0 +1,18 @@
+import React from "react";
+import HeroSection from "@/components/home/HeroSection";
+import StatsBar from "@/components/home/StatsBar";
+import AboutSection from "@/components/home/AboutSection";
+import CampusSection from "@/components/home/CampusSection";
+import FeaturedProjects from "@/components/home/FeaturedProjects";
+
+export default function Home() {
+  return (
+    <div>
+      <HeroSection />
+      <StatsBar />
+      <AboutSection />
+      <FeaturedProjects />
+      <CampusSection />
+    </div>
+  );
+}

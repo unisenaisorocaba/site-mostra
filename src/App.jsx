@@ -5,7 +5,17 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+
+import PublicLayout from '@/components/public/PublicLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import Home from '@/pages/Home';
+import Projects from '@/pages/Projects';
+import ProjectDetail from '@/pages/ProjectDetail';
+import PublicPhotos from '@/pages/PublicPhotos';
+import Dashboard from '@/pages/Dashboard';
+import MyProjects from '@/pages/MyProjects';
+import Evaluations from '@/pages/Evaluations';
+import ManagePhotos from '@/pages/ManagePhotos';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,7 +43,22 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      {/* Public Routes */}
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/projetos" element={<Projects />} />
+        <Route path="/projetos/:id" element={<ProjectDetail />} />
+        <Route path="/fotos" element={<PublicPhotos />} />
+      </Route>
+
+      {/* Authenticated Routes */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/projetos" element={<MyProjects />} />
+        <Route path="/dashboard/avaliacoes" element={<Evaluations />} />
+        <Route path="/dashboard/fotos" element={<ManagePhotos />} />
+      </Route>
+
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
