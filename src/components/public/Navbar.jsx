@@ -2,16 +2,12 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/mockAuthContext";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const [authenticated, setAuthenticated] = useState(null);
-
-  React.useEffect(() => {
-    base44.auth.isAuthenticated().then(setAuthenticated);
-  }, []);
+  const { isAuthenticated: authenticated } = useAuth();
 
   const links = [
     { label: "Início", path: "/" },
@@ -58,7 +54,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <Button
-              onClick={() => base44.auth.redirectToLogin()}
+              onClick={() => {}}
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase font-bold tracking-wider px-6"
             >
               Entrar
@@ -91,7 +87,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <Button
-              onClick={() => base44.auth.redirectToLogin()}
+              onClick={() => {}}
               className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
             >
               Entrar

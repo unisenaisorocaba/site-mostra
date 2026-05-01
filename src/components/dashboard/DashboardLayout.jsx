@@ -14,9 +14,10 @@ import {
   Mic,
   ListChecks,
 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/mockAuthContext";
+import { mockBase44 as base44 } from "@/lib/mockClient";
 
 const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -46,6 +47,7 @@ const adminNavItems = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { logout } = useAuth();
 
   const isActive = (path) => location.pathname === path;
 
@@ -85,7 +87,7 @@ export default function DashboardLayout() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => base44.auth.logout()}
+            onClick={() => logout()}
             className="text-xs uppercase font-bold tracking-wide gap-2 text-destructive"
           >
             <LogOut className="w-4 h-4" /> Sair

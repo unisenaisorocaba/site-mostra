@@ -1,20 +1,12 @@
-import { base44 } from "@/api/base44Client";
+import { mockBase44 as base44 } from "@/lib/mockClient";
 
-/**
- * EvaluationService — todas as operações relacionadas a avaliações.
- */
 const EvaluationService = {
-  /** Lista avaliações do usuário logado */
   listMine: async () => {
     const user = await base44.auth.me();
     return base44.entities.Evaluation.filter({ created_by: user.email }, "-created_date");
   },
-
-  /** Lista todas as avaliações de um projeto */
   listByProject: (projectId) =>
     base44.entities.Evaluation.filter({ project_id: projectId }),
-
-  /** Cria uma nova avaliação (injeta nome do avaliador automaticamente) */
   create: async (data) => {
     const user = await base44.auth.me();
     return base44.entities.Evaluation.create({
@@ -22,8 +14,6 @@ const EvaluationService = {
       evaluator_name: user.full_name || user.email,
     });
   },
-
-  /** Calcula a média de uma avaliação (professor ou aluno) */
   average: (evaluation) => {
     if (evaluation.evaluation_type === "professor" && evaluation.criteria_scores?.length > 0) {
       const sum = evaluation.criteria_scores.reduce((a, b) => a + (b.score || 0), 0);
