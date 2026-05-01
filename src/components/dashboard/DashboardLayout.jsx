@@ -27,6 +27,7 @@ const studentNavItems = [
 
 const teacherNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
@@ -34,6 +35,7 @@ const teacherNavItems = [
 
 const adminNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },
