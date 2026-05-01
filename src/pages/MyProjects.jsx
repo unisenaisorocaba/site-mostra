@@ -7,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { ProjectService } from "@/services";
-
-const categoryLabels = { mecatronica: "Mecatrônica", software: "Software", gestao: "Gestão", logistica: "Logística", energia: "Energia", quimica: "Química", automacao: "Automação", outros: "Outros" };
+import { ProjectService, CATEGORY_LABELS } from "@/services";
 
 const statusConfig = {
   aprovado: { label: "APROVADO", cls: "bg-green-100 text-green-700" },
@@ -154,7 +152,7 @@ export default function MyProjects() {
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Categoria *</Label>
                       <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                         <SelectTrigger className="rounded-none"><SelectValue /></SelectTrigger>
-                        <SelectContent>{Object.entries(categoryLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
+                        <SelectContent>{Object.entries(CATEGORY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
                     <div>
@@ -250,7 +248,7 @@ export default function MyProjects() {
                   <div className="space-y-4">
                     {[
                       { label: "Título", value: form.title },
-                      { label: "Categoria", value: categoryLabels[form.category] },
+                      { label: "Categoria", value: CATEGORY_LABELS[form.category] },
                       { label: "Equipe", value: form.team_name },
                       { label: "Orientador", value: form.advisor || "—" },
                       { label: "Apresentação", value: form.presentation_type === "oral" ? "Oral + Banner" : "Somente Banner" },
@@ -324,7 +322,7 @@ export default function MyProjects() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{categoryLabels[project.category]} · {project.team_name}</p>
+                    <p className="text-sm text-muted-foreground">{CATEGORY_LABELS[project.category]} · {project.team_name}</p>
                     <div className="flex gap-3 mt-2 flex-wrap">
                       <span className={`text-[10px] font-bold uppercase ${project.banner_url ? "text-green-600" : "text-red-500"}`}>
                         {project.banner_url ? "✓ Banner" : "✗ Banner (obrigatório)"}

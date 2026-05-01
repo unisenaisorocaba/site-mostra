@@ -1,31 +1,10 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-
-const categoryLabels = {
-  mecatronica: "Mecatrônica",
-  software: "Software",
-  gestao: "Gestão",
-  logistica: "Logística",
-  energia: "Energia",
-  quimica: "Química",
-  automacao: "Automação",
-  outros: "Outros",
-};
-
-const defaultImages = {
-  mecatronica: "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?w=600&q=80",
-  software: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&q=80",
-  gestao: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80",
-  logistica: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80",
-  energia: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=600&q=80",
-  quimica: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=600&q=80",
-  automacao: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&q=80",
-  outros: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80",
-};
+import { CATEGORY_LABELS, getCategoryImage } from "@/services";
 
 export default function ProjectCard({ project, featured = false }) {
-  const image = project.thumbnail_url || defaultImages[project.category] || defaultImages.outros;
+  const image = project.thumbnail_url || getCategoryImage(project.category, 600);
 
   if (featured) {
     return (
@@ -42,7 +21,7 @@ export default function ProjectCard({ project, featured = false }) {
         </div>
         <div className="p-6 md:p-8 flex-1 flex flex-col border-l-4 border-primary">
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-            DESTAQUE • {categoryLabels[project.category] || project.category}
+            DESTAQUE • {CATEGORY_LABELS[project.category] || project.category}
           </span>
           <h3 className="text-xl md:text-2xl font-bold font-heading mb-3 leading-tight">
             {project.title}
@@ -77,7 +56,7 @@ export default function ProjectCard({ project, featured = false }) {
       </div>
       <div className="p-5">
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
-          {categoryLabels[project.category] || project.category}
+          {CATEGORY_LABELS[project.category] || project.category}
         </span>
         <h4 className="text-lg font-bold font-heading mb-2 leading-tight">
           {project.title}

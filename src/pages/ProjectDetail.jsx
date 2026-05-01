@@ -1,42 +1,20 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Users, MapPin, Tag, BookOpen, Download, ExternalLink } from "lucide-react";
+import { ChevronLeft, Users, MapPin, BookOpen, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const categoryLabels = {
-  mecatronica: "Mecatrônica",
-  software: "Software",
-  gestao: "Gestão",
-  logistica: "Logística",
-  energia: "Energia",
-  quimica: "Química",
-  automacao: "Automação",
-  outros: "Outros",
-};
-
-const defaultImages = {
-  mecatronica: "https://images.unsplash.com/photo-1561557944-6e7860d1a7eb?w=1200&q=80",
-  software: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80",
-  gestao: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80",
-  logistica: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80",
-  energia: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1200&q=80",
-  quimica: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200&q=80",
-  automacao: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=80",
-  outros: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&q=80",
-};
+import { ProjectService, CATEGORY_LABELS, getCategoryImage } from "@/services";
 
 export default function ProjectDetail() {
   const { id } = useParams();
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["project", id],
-    queryFn: () => base44.entities.Project.filter({ id }, null, 1),
+    queryFn: () => ProjectService.getById(id),
   });
 
-  const project = projects?.[0];
+  const project = projects;
 
   if (isLoading) {
     return (
@@ -65,7 +43,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const image = project.thumbnail_url || defaultImages[project.category] || defaultImages.outros;
+  const image = project.thumbnail_url || getCategoryImage(project.category);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -82,7 +60,7 @@ export default function ProjectDetail() {
         <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">
-              {categoryLabels[project.category] || project.category}
+              {CATEGORY_LABELS[project.category] || project.category}
               {project.room && ` • ${project.room}`}
             </span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-3 leading-tight">
@@ -102,7 +80,7 @@ export default function ProjectDetail() {
             </span>
             {project.category && (
               <span className="px-3 py-1 border border-border text-[10px] font-bold uppercase tracking-widest">
-                {categoryLabels[project.category]}
+                {CATEGORY_LABELS[project.category]}
               </span>
             )}
           </div>
@@ -254,7 +232,7 @@ export default function ProjectDetail() {
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Categoria</span>
-              <span className="font-bold">{categoryLabels[project.category] || project.category}</span>
+              <span className="font-bold">{CATEGORY_LABELS[project.category] || project.category}</span>
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Status</span>

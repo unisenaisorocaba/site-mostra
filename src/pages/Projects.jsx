@@ -4,18 +4,11 @@ import ProjectCard from "@/components/projects/ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ProjectService } from "@/services";
+import { ProjectService, CATEGORY_LABELS } from "@/services";
 
 const categories = [
   { key: "all", label: "Todos" },
-  { key: "mecatronica", label: "Mecatrônica" },
-  { key: "software", label: "Software" },
-  { key: "gestao", label: "Gestão" },
-  { key: "logistica", label: "Logística" },
-  { key: "energia", label: "Energia" },
-  { key: "quimica", label: "Química" },
-  { key: "automacao", label: "Automação" },
-  { key: "outros", label: "Outros" },
+  ...Object.entries(CATEGORY_LABELS).map(([key, label]) => ({ key, label })),
 ];
 
 export default function Projects() {
