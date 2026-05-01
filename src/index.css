@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+/* Fonts via system stack – no external requests needed */
 
 @tailwind base;
 @tailwind components;
@@ -6,8 +6,8 @@
 
 @layer base {
   :root {
-    --font-heading: 'Space Grotesk', sans-serif;
-    --font-body: 'Space Grotesk', sans-serif;
+    --font-heading: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
 
     --background: 220 30% 99%;
     --foreground: 220 40% 10%;
@@ -86,6 +86,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
   }
 }
