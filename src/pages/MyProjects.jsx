@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github, FileText } from "lucide-react";
+import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { ProjectService } from "@/services";
 
 const categoryLabels = { mecatronica: "Mecatrônica", software: "Software", gestao: "Gestão", logistica: "Logística", energia: "Energia", quimica: "Química", automacao: "Automação", outros: "Outros" };
 
@@ -43,27 +43,23 @@ export default function MyProjects() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects = [], isLoading } = useQuery({
     queryKey: ["my-projects"],
-    queryFn: async () => {
-      const user = await base44.auth.me();
-      return base44.entities.Project.filter({ created_by: user.email }, "-created_date");
-    },
-    initialData: [],
+    queryFn: () => ProjectService.listMine(),
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Project.create(data),
+    mutationFn: (data) => ProjectService.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-projects"] }); toast({ title: "Projeto criado!" }); closeForm(); },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Project.update(id, data),
+    mutationFn: ({ id, data }) => ProjectService.update(id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-projects"] }); toast({ title: "Projeto atualizado!" }); closeForm(); },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Project.delete(id),
+    mutationFn: (id) => ProjectService.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-projects"] }); toast({ title: "Projeto excluído." }); },
   });
 
@@ -84,16 +80,15 @@ export default function MyProjects() {
 
   const handleSave = () => {
     const data = { ...form, keywords: keywordsText.split(",").map(k => k.trim()).filter(Boolean), members: form.members.filter(m => m.name) };
-    if (editing) { updateMutation.mutate({ id: editing.id, data }); }
-    else { createMutation.mutate(data); }
+    if (editing) updateMutation.mutate({ id: editing.id, data });
+    else createMutation.mutate(data);
   };
 
-  const handleFileUpload = async (e, projectId, field, accept) => {
+  const handleFileUpload = async (e, projectId, field) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(u => ({ ...u, [field]: true }));
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.entities.Project.update(projectId, { [field]: file_url });
+    await ProjectService.uploadFile(projectId, field, file);
     queryClient.invalidateQueries({ queryKey: ["my-projects"] });
     toast({ title: "Arquivo enviado!" });
     setUploading(u => ({ ...u, [field]: false }));
@@ -102,7 +97,7 @@ export default function MyProjects() {
 
   const submitProject = async (project) => {
     if (!project.banner_url) { toast({ title: "Banner obrigatório antes de submeter!", variant: "destructive" }); return; }
-    await base44.entities.Project.update(project.id, { status: "submetido" });
+    await ProjectService.submit(project.id);
     queryClient.invalidateQueries({ queryKey: ["my-projects"] });
     toast({ title: "Projeto submetido para avaliação!" });
   };
@@ -113,7 +108,7 @@ export default function MyProjects() {
 
   const UploadBtn = ({ label, field, accept, projectId }) => (
     <label className="cursor-pointer">
-      <input type="file" accept={accept} className="hidden" onChange={(e) => handleFileUpload(e, projectId, field, accept)} />
+      <input type="file" accept={accept} className="hidden" onChange={(e) => handleFileUpload(e, projectId, field)} />
       <span className="inline-flex items-center gap-1.5 px-3 py-2 border border-border text-[10px] font-bold uppercase hover:border-primary transition-colors cursor-pointer">
         <Upload className="w-3 h-3" /> {uploading[field] ? "Enviando..." : label}
       </span>
@@ -130,11 +125,9 @@ export default function MyProjects() {
             <span className="text-primary">{editing ? "Editar Projeto" : "Novo Projeto"}</span>
           </nav>
           <h1 className="text-3xl md:text-4xl font-bold font-heading">{editing ? "Editar Projeto" : "Submissão de Projeto"}</h1>
-          <p className="text-muted-foreground mt-2 max-w-2xl">Registre sua iniciativa inovadora. O processo de submissão é dividido em etapas.</p>
         </div>
 
         <div className="grid grid-cols-12 gap-8">
-          {/* Step Navigator */}
           <div className="col-span-12 lg:col-span-3">
             <div className="flex flex-col gap-1 border-l border-border">
               {steps.map((step, i) => (
@@ -149,7 +142,6 @@ export default function MyProjects() {
 
           <div className="col-span-12 lg:col-span-9">
             <div className="bg-white border border-border p-10">
-              {/* Step 0: Details */}
               {formStep === 0 && (
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Especificações do Projeto</h2>
@@ -179,17 +171,10 @@ export default function MyProjects() {
                           </div>
                         ))}
                       </div>
-                      {form.presentation_type === "oral" && (
-                        <p className="mt-3 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 p-3">
-                          ⚠ A aprovação para apresentação oral é feita pelos professores. Você precisará enviar slides no passo de Materiais.
-                        </p>
-                      )}
                     </div>
                     <div>
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Resumo Executivo</Label>
-                      <div className="border-l-4 border-primary pl-6 bg-muted/30 py-2">
-                        <Textarea value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} placeholder="Descreva o problema, a solução proposta e os impactos esperados..." className="border-none bg-transparent focus:ring-0 resize-none h-28" />
-                      </div>
+                      <Textarea value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} placeholder="Descreva o problema, a solução proposta e os impactos esperados..." className="rounded-none h-28" />
                     </div>
                     <div>
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Descrição Completa</Label>
@@ -203,7 +188,6 @@ export default function MyProjects() {
                 </>
               )}
 
-              {/* Step 1: Team */}
               {formStep === 1 && (
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Dados da Equipe</h2>
@@ -240,11 +224,9 @@ export default function MyProjects() {
                 </>
               )}
 
-              {/* Step 2: Materials */}
               {formStep === 2 && (
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Links e Materiais</h2>
-                  <p className="text-sm text-muted-foreground mb-6">Os uploads de arquivos (banner, artigo, slides) são feitos após criar o projeto. Aqui você pode informar os links.</p>
                   <div className="space-y-6">
                     <div>
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2 flex items-center gap-2">
@@ -258,15 +240,10 @@ export default function MyProjects() {
                       </Label>
                       <Input value={form.pitch_youtube_url} onChange={(e) => setForm({ ...form, pitch_youtube_url: e.target.value })} className="rounded-none" placeholder="https://youtube.com/watch?v=..." type="url" />
                     </div>
-                    <div className="p-4 bg-muted/40 border-l-4 border-primary">
-                      <p className="text-sm font-bold mb-1">Upload de Arquivos</p>
-                      <p className="text-xs text-muted-foreground">Após criar/salvar o projeto, você poderá fazer o upload do <strong>Banner (obrigatório)</strong>, <strong>Artigo Científico</strong> e <strong>Slides de Apresentação</strong> (necessário se optar por apresentação oral) diretamente na lista de projetos.</p>
-                    </div>
                   </div>
                 </>
               )}
 
-              {/* Step 3: Review */}
               {formStep === 3 && (
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Revisão Final</h2>
@@ -277,28 +254,16 @@ export default function MyProjects() {
                       { label: "Equipe", value: form.team_name },
                       { label: "Orientador", value: form.advisor || "—" },
                       { label: "Apresentação", value: form.presentation_type === "oral" ? "Oral + Banner" : "Somente Banner" },
-                      { label: "GitHub", value: form.github_url || "—" },
-                      { label: "Pitch YouTube", value: form.pitch_youtube_url || "—" },
                     ].map((item, i) => (
                       <div key={i} className="flex justify-between py-3 border-b border-muted">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</span>
                         <span className="font-bold text-sm text-right max-w-xs truncate">{item.value}</span>
                       </div>
                     ))}
-                    {form.members.filter(m => m.name).length > 0 && (
-                      <div className="pt-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Membros</span>
-                        {form.members.filter(m => m.name).map((m, i) => <div key={i} className="text-sm"><strong>{m.name}</strong>{m.email && <span className="text-muted-foreground ml-2">{m.email}</span>}</div>)}
-                      </div>
-                    )}
-                    <div className="p-4 bg-muted/40 border-l-4 border-primary mt-4">
-                      <p className="text-sm text-muted-foreground">Após salvar, faça o upload do <strong>Banner</strong> (obrigatório) e demais materiais, depois use o botão <strong>Submeter</strong>.</p>
-                    </div>
                   </div>
                 </>
               )}
 
-              {/* Actions */}
               <div className="flex justify-between items-center pt-8 border-t border-muted mt-8">
                 <Button variant="outline" onClick={closeForm} className="rounded-none text-xs uppercase font-bold tracking-wider">Cancelar</Button>
                 <div className="flex gap-4">
@@ -360,10 +325,6 @@ export default function MyProjects() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{categoryLabels[project.category]} · {project.team_name}</p>
-                    {project.room && project.schedule_time && (
-                      <p className="text-xs text-primary font-bold mt-1">📍 {project.room} · 🕐 {project.schedule_time}</p>
-                    )}
-                    {/* File status */}
                     <div className="flex gap-3 mt-2 flex-wrap">
                       <span className={`text-[10px] font-bold uppercase ${project.banner_url ? "text-green-600" : "text-red-500"}`}>
                         {project.banner_url ? "✓ Banner" : "✗ Banner (obrigatório)"}
@@ -386,7 +347,6 @@ export default function MyProjects() {
                     </Button>
                   </div>
                 </div>
-                {/* Upload Row */}
                 <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
                   <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
                   <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />

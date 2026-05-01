@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail } from "lucide-react";
+import { UserService } from "@/services";
 
 const typeConfig = {
   aluno: { label: "Aluno", cls: "bg-blue-100 text-blue-700", icon: GraduationCap },
@@ -24,17 +24,15 @@ export default function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: profiles, isLoading } = useQuery({
+  const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["user-profiles"],
-    queryFn: () => base44.entities.UserProfile.list("-created_date", 200),
-    initialData: [],
+    queryFn: () => UserService.listAll(),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      // Invite user to platform first
-      await base44.users.inviteUser(data.user_email, data.user_type === "professor" ? "user" : "user");
-      return base44.entities.UserProfile.create(data);
+      await UserService.invite(data.user_email, "user");
+      return UserService.create(data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
@@ -42,7 +40,6 @@ export default function UserManagement() {
       closeForm();
     },
     onError: () => {
-      // Even if invite fails (user may already exist), create profile
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       toast({ title: "Perfil salvo. Verifique se o convite foi enviado." });
       closeForm();
@@ -50,7 +47,7 @@ export default function UserManagement() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.UserProfile.update(id, data),
+    mutationFn: ({ id, data }) => UserService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       toast({ title: "Usuário atualizado!" });
@@ -59,7 +56,7 @@ export default function UserManagement() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.UserProfile.delete(id),
+    mutationFn: (id) => UserService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
       toast({ title: "Usuário removido." });
@@ -76,11 +73,8 @@ export default function UserManagement() {
 
   const handleSave = () => {
     if (!form.user_email || !form.full_name) return;
-    if (editing) {
-      updateMutation.mutate({ id: editing.id, data: form });
-    } else {
-      createMutation.mutate(form);
-    }
+    if (editing) updateMutation.mutate({ id: editing.id, data: form });
+    else createMutation.mutate(form);
   };
 
   const filtered = profiles.filter((p) => {
@@ -104,7 +98,6 @@ export default function UserManagement() {
         </Button>
       </div>
 
-      {/* KPI strip */}
       <div className="grid grid-cols-3 gap-6 mb-8">
         {[
           { label: "Total de Usuários", value: profiles.length },
@@ -118,13 +111,10 @@ export default function UserManagement() {
         ))}
       </div>
 
-      {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-border w-full max-w-lg p-8">
-            <h2 className="text-xl font-bold font-heading mb-6 border-b border-muted pb-4">
-              {editing ? "Editar Usuário" : "Cadastrar Usuário"}
-            </h2>
+            <h2 className="text-xl font-bold font-heading mb-6 border-b border-muted pb-4">{editing ? "Editar Usuário" : "Cadastrar Usuário"}</h2>
             <div className="space-y-5">
               <div>
                 <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Tipo de Usuário *</Label>
@@ -144,18 +134,16 @@ export default function UserManagement() {
                 <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">E-mail Institucional *</Label>
                 <Input value={form.user_email} onChange={(e) => setForm({ ...form, user_email: e.target.value })} className="rounded-none" placeholder="email@senaisp.edu.br" type="email" disabled={!!editing} />
               </div>
-              {form.user_type === "aluno" && (
-                <>
-                  <div>
-                    <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Matrícula / RA</Label>
-                    <Input value={form.registration} onChange={(e) => setForm({ ...form, registration: e.target.value })} className="rounded-none" placeholder="Ex: 2024001" />
-                  </div>
-                  <div>
-                    <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Curso</Label>
-                    <Input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} className="rounded-none" placeholder="Ex: Mecatrônica" />
-                  </div>
-                </>
-              )}
+              {form.user_type === "aluno" && (<>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Matrícula / RA</Label>
+                  <Input value={form.registration} onChange={(e) => setForm({ ...form, registration: e.target.value })} className="rounded-none" placeholder="Ex: 2024001" />
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Curso</Label>
+                  <Input value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} className="rounded-none" placeholder="Ex: Mecatrônica" />
+                </div>
+              </>)}
               {form.user_type === "professor" && (
                 <div>
                   <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Departamento</Label>
@@ -173,7 +161,6 @@ export default function UserManagement() {
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -188,7 +175,6 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white border border-border">
         <div className="bg-muted/40 border-b border-border px-6 py-4">
           <span className="text-[10px] font-bold uppercase tracking-widest">{filtered.length} usuário(s)</span>
@@ -196,10 +182,7 @@ export default function UserManagement() {
         {isLoading ? (
           <div className="p-10 text-center text-muted-foreground">Carregando...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-16 text-center">
-            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Nenhum usuário encontrado.</p>
-          </div>
+          <div className="p-16 text-center"><Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" /><p className="text-muted-foreground">Nenhum usuário encontrado.</p></div>
         ) : (
           <div className="divide-y divide-border">
             {filtered.map((profile) => {
@@ -207,9 +190,7 @@ export default function UserManagement() {
               const Icon = tc.icon;
               return (
                 <div key={profile.id} className="p-5 flex items-center gap-4 hover:bg-muted/20 transition-colors">
-                  <div className="w-12 h-12 bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-primary" />
-                  </div>
+                  <div className="w-12 h-12 bg-muted border border-border flex items-center justify-center flex-shrink-0"><Icon className="w-5 h-5 text-primary" /></div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 flex-wrap mb-0.5">
                       <span className="font-bold text-sm">{profile.full_name}</span>

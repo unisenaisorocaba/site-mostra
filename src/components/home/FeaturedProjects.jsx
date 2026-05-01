@@ -1,25 +1,22 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectCard from "@/components/projects/ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProjectService } from "@/services";
 
 export default function FeaturedProjects() {
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects-featured"],
-    queryFn: () => base44.entities.Project.filter({ status: "aprovado" }, "-created_date", 5),
-    initialData: [],
+    queryFn: () => ProjectService.listFeatured(),
   });
 
   return (
     <section className="max-w-7xl mx-auto px-6 py-16 md:py-24">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-        <h2 className="text-2xl md:text-3xl font-bold font-heading uppercase">
-          Projetos em Destaque
-        </h2>
+        <h2 className="text-2xl md:text-3xl font-bold font-heading uppercase">Projetos em Destaque</h2>
         <Link to="/projetos">
           <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
             Ver Todos <ArrowRight className="w-4 h-4" />

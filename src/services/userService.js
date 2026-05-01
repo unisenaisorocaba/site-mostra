@@ -15,7 +15,7 @@ const UserService = {
   },
 
   /** Lista todos os perfis (admin) */
-  listAll: () => base44.entities.UserProfile.list("-created_date"),
+  listAll: () => base44.entities.UserProfile.list("-created_date", 200),
 
   /** Cria um perfil */
   create: (data) => base44.entities.UserProfile.create(data),

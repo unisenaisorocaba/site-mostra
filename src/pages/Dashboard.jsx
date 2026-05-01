@@ -1,9 +1,9 @@
 import React from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { FolderOpen, ClipboardCheck, Camera, TrendingUp, ArrowRight } from "lucide-react";
+import { FolderOpen, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ProjectService, EvaluationService } from "@/services";
 
 const statusConfig = {
   aprovado: { label: "APROVADO", cls: "bg-green-100 text-green-700" },
@@ -13,42 +13,23 @@ const statusConfig = {
 };
 
 export default function Dashboard() {
-  const { data: myProjects } = useQuery({
+  const { data: myProjects = [] } = useQuery({
     queryKey: ["my-projects"],
-    queryFn: async () => {
-      const user = await base44.auth.me();
-      return base44.entities.Project.filter({ created_by: user.email });
-    },
-    initialData: [],
+    queryFn: () => ProjectService.listMine(),
   });
 
-  const { data: evaluations } = useQuery({
+  const { data: evaluations = [] } = useQuery({
     queryKey: ["my-evaluations"],
-    queryFn: async () => {
-      const user = await base44.auth.me();
-      return base44.entities.Evaluation.filter({ created_by: user.email });
-    },
-    initialData: [],
-  });
-
-  const { data: photos } = useQuery({
-    queryKey: ["photos-count"],
-    queryFn: () => base44.entities.EventPhoto.list("-created_date", 200),
-    initialData: [],
+    queryFn: () => EvaluationService.listMine(),
   });
 
   const submitted = myProjects.filter((p) => p.status !== "rascunho").length;
   const avgScore = evaluations.length > 0
-    ? (evaluations.reduce((sum, e) => {
-        const avg = ([e.criteria_innovation, e.criteria_technical, e.criteria_presentation, e.criteria_relevance]
-          .filter(Boolean).reduce((a, b) => a + b, 0)) / 4;
-        return sum + avg;
-      }, 0) / evaluations.length).toFixed(1)
+    ? (evaluations.reduce((sum, e) => sum + parseFloat(EvaluationService.average(e) || 0), 0) / evaluations.length).toFixed(1)
     : "—";
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold font-heading">Dashboard</h1>
@@ -56,19 +37,14 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-3">
           <Link to="/dashboard/projetos">
-            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2">
-              Meus Projetos
-            </Button>
+            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2">Meus Projetos</Button>
           </Link>
           <Link to="/dashboard/avaliacoes">
-            <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">
-              Nova Avaliação
-            </Button>
+            <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">Nova Avaliação</Button>
           </Link>
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {[
           { label: "Pendentes de Avaliação", value: Math.max(0, 5 - evaluations.length), note: "Projetos na fila", to: "/dashboard/avaliacoes", highlight: true },
@@ -76,26 +52,15 @@ export default function Dashboard() {
           { label: "Média de Desempenho", value: avgScore, note: "/ 10 pontos", to: "/dashboard/avaliacoes" },
           { label: "Projetos Submetidos", value: submitted, note: "De " + myProjects.length + " cadastrados", to: "/dashboard/projetos" },
         ].map((card, i) => (
-          <Link
-            key={i}
-            to={card.to}
-            className="bg-white border border-border p-6 relative overflow-hidden hover:border-primary transition-colors group"
-          >
-            {card.highlight && (
-              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-            )}
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {card.label}
-            </p>
-            <h2 className="text-4xl font-bold font-heading text-foreground">
-              {card.value}
-            </h2>
+          <Link key={i} to={card.to} className="bg-white border border-border p-6 relative overflow-hidden hover:border-primary transition-colors group">
+            {card.highlight && <div className="absolute top-0 left-0 w-1 h-full bg-primary" />}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{card.label}</p>
+            <h2 className="text-4xl font-bold font-heading text-foreground">{card.value}</h2>
             <p className="text-xs text-muted-foreground mt-2">{card.note}</p>
           </Link>
         ))}
       </div>
 
-      {/* Projects Table */}
       <div className="bg-white border border-border">
         <div className="bg-muted/50 border-b border-border px-6 py-4 flex justify-between items-center">
           <span className="text-[10px] font-bold uppercase tracking-widest">Lista de Projetos Cadastrados</span>
@@ -110,9 +75,7 @@ export default function Dashboard() {
           <div className="text-center py-16">
             <p className="text-muted-foreground mb-4">Nenhum projeto cadastrado ainda.</p>
             <Link to="/dashboard/projetos">
-              <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
-                Criar Primeiro Projeto
-              </Button>
+              <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">Criar Primeiro Projeto</Button>
             </Link>
           </div>
         ) : (
@@ -127,18 +90,13 @@ export default function Dashboard() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-1">
                       <h3 className="font-bold text-base">{project.title}</h3>
-                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${st.cls}`}>
-                        {st.label}
-                      </span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${st.cls}`}>{st.label}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">{project.team_name}</p>
                   </div>
                   <Link to="/dashboard/projetos">
-                    <Button
-                      size="sm"
-                      variant={project.status === "rascunho" ? "default" : "outline"}
-                      className={`rounded-none text-xs uppercase font-bold ${project.status === "rascunho" ? "bg-primary text-primary-foreground" : ""}`}
-                    >
+                    <Button size="sm" variant={project.status === "rascunho" ? "default" : "outline"}
+                      className={`rounded-none text-xs uppercase font-bold ${project.status === "rascunho" ? "bg-primary text-primary-foreground" : ""}`}>
                       {project.status === "rascunho" ? "Submeter" : "Ver Detalhes"}
                     </Button>
                   </Link>

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Star, ChevronRight, Plus, X } from "lucide-react";
+import { Star, ChevronRight, X } from "lucide-react";
+import { ProjectService, EvaluationService, CriteriaService, UserService } from "@/services";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
@@ -18,7 +18,7 @@ const BANNER_CRITERIA = [
 
 export default function Evaluations() {
   const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [selectedListIds, setSelectedListIds] = useState([]); // multiple lists
+  const [selectedListIds, setSelectedListIds] = useState([]);
   const [dynamicScores, setDynamicScores] = useState({});
   const [bannerScores, setBannerScores] = useState({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
   const [comments, setComments] = useState("");
@@ -26,48 +26,37 @@ export default function Evaluations() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
-
-  const { data: myProfile } = useQuery({
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
+  const { data: profile } = useQuery({
     queryKey: ["my-profile", user?.email],
-    queryFn: () => base44.entities.UserProfile.filter({ user_email: user.email }, null, 1),
+    queryFn: () => UserService.myProfile(),
     enabled: !!user,
-    initialData: [],
   });
 
-  const profile = myProfile?.[0];
   const isAdmin = user?.role === "admin";
   const isTeacher = isAdmin || profile?.user_type === "professor";
 
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ["projects-for-eval"],
-    queryFn: () => base44.entities.Project.filter({ status: "aprovado" }),
-    initialData: [],
+    queryFn: () => ProjectService.listApproved(),
   });
 
-  const { data: myCriteriaLists } = useQuery({
+  const { data: myCriteriaLists = [] } = useQuery({
     queryKey: ["my-criteria-lists", user?.email],
-    queryFn: () => base44.entities.CriteriaList.filter({ owner_email: user.email }, "name"),
+    queryFn: () => CriteriaService.listMine(),
     enabled: !!user && isTeacher,
-    initialData: [],
   });
 
-  // All criteria from selected lists, with a unique key: `${listId}__${idx}`
-  const selectedLists = (myCriteriaLists || []).filter((l) => selectedListIds.includes(l.id));
+  const { data: myEvaluations = [] } = useQuery({
+    queryKey: ["my-evaluations"],
+    queryFn: () => EvaluationService.listMine(),
+  });
+
+  const selectedLists = myCriteriaLists.filter((l) => selectedListIds.includes(l.id));
   const allSelectedCriteria = selectedLists.flatMap((list) =>
     (list.criteria || []).map((c, i) => ({ ...c, _key: `${list.id}__${i}`, _listName: list.name }))
   );
 
-  const { data: myEvaluations } = useQuery({
-    queryKey: ["my-evaluations"],
-    queryFn: async () => {
-      const u = await base44.auth.me();
-      return base44.entities.Evaluation.filter({ created_by: u.email }, "-created_date");
-    },
-    initialData: [],
-  });
-
-  // Reset when project changes
   useEffect(() => {
     setSelectedListIds([]);
     setDynamicScores({});
@@ -81,8 +70,7 @@ export default function Evaluations() {
 
   const removeList = (listId) => {
     setSelectedListIds((prev) => prev.filter((id) => id !== listId));
-    // Remove scores from that list
-    const list = (myCriteriaLists || []).find((l) => l.id === listId);
+    const list = myCriteriaLists.find((l) => l.id === listId);
     if (list) {
       const keysToRemove = (list.criteria || []).map((_, i) => `${listId}__${i}`);
       setDynamicScores((prev) => {
@@ -94,10 +82,7 @@ export default function Evaluations() {
   };
 
   const createEval = useMutation({
-    mutationFn: async (data) => {
-      const u = await base44.auth.me();
-      return base44.entities.Evaluation.create({ ...data, evaluator_name: u.full_name || u.email });
-    },
+    mutationFn: (data) => EvaluationService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-evaluations"] });
       toast({ title: "Avaliação finalizada com sucesso!" });
@@ -112,7 +97,6 @@ export default function Evaluations() {
 
   const handleSubmit = () => {
     if (!selectedProjectId || !declared) return;
-
     if (isTeacher) {
       if (allSelectedCriteria.length === 0) {
         toast({ title: "Selecione ao menos uma lista de critérios!", variant: "destructive" });
@@ -129,31 +113,12 @@ export default function Evaluations() {
     }
   };
 
-  const getProjectTitle = (id) => {
-    const p = projects.find((p) => p.id === id);
-    return p ? p.title : id;
-  };
-
-  const avgEval = (ev) => {
-    if (ev.evaluation_type === "professor" && ev.criteria_scores?.length > 0) {
-      const sum = ev.criteria_scores.reduce((a, b) => a + (b.score || 0), 0);
-      return (sum / ev.criteria_scores.length).toFixed(1);
-    }
-    const vals = BANNER_CRITERIA.map((c) => ev[c.key] || 0).filter((v) => v > 0);
-    if (vals.length === 0) return "—";
-    return (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
-  };
-
+  const getProjectTitle = (id) => projects.find((p) => p.id === id)?.title ?? id;
   const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
-
-  // Lists not yet selected (for the add dropdown)
-  const availableLists = (myCriteriaLists || []).filter(
-    (l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0
-  );
+  const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
           <nav className="flex items-center gap-2 text-xs text-muted-foreground font-bold uppercase tracking-widest mb-2">
@@ -175,7 +140,6 @@ export default function Evaluations() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Panel */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Project Selection */}
           <div className="bg-white border border-border p-8 relative">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Projeto a Avaliar</Label>
@@ -205,7 +169,6 @@ export default function Evaluations() {
             })()}
           </div>
 
-          {/* Status Widget */}
           <div className="bg-primary p-6">
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/80 mb-2">Status da Avaliação</p>
             <div className="flex justify-between items-end mb-2">
@@ -214,7 +177,6 @@ export default function Evaluations() {
             </div>
           </div>
 
-          {/* History */}
           <div>
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
               Avaliações Realizadas ({myEvaluations.length})
@@ -234,7 +196,7 @@ export default function Evaluations() {
                       </div>
                       <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1">
                         <Star className="w-3.5 h-3.5 text-primary" />
-                        <span className="font-bold text-primary text-sm">{avgEval(ev)}</span>
+                        <span className="font-bold text-primary text-sm">{EvaluationService.average(ev)}</span>
                       </div>
                     </div>
                     {ev.evaluation_type === "professor" && ev.criteria_scores?.length > 0 ? (
@@ -263,7 +225,7 @@ export default function Evaluations() {
           </div>
         </div>
 
-        {/* Right Panel: Evaluation Form */}
+        {/* Right Panel */}
         <div className="lg:col-span-7 bg-white border border-border">
           <div className="bg-muted/40 border-b border-border px-6 py-5">
             <h3 className="text-lg font-bold font-heading">
@@ -272,21 +234,17 @@ export default function Evaluations() {
           </div>
 
           <div className="p-8 space-y-8">
-            {/* TEACHER: pick multiple lists, score all criteria */}
             {isTeacher ? (
               <>
-                {(myCriteriaLists || []).length === 0 ? (
+                {myCriteriaLists.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-border">
                     <p className="text-sm text-muted-foreground mb-2">Você ainda não tem listas de critérios cadastradas.</p>
                     <a href="/dashboard/criterios" className="text-primary text-sm font-bold underline">Cadastrar listas</a>
                   </div>
                 ) : (
                   <>
-                    {/* Selected lists as tags */}
                     <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">
-                        Listas Selecionadas
-                      </Label>
+                      <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Listas Selecionadas</Label>
                       <div className="flex flex-wrap gap-2 mb-3 min-h-[2rem]">
                         {selectedLists.map((list) => (
                           <span key={list.id} className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 text-xs font-bold">
@@ -300,8 +258,6 @@ export default function Evaluations() {
                           <span className="text-xs text-muted-foreground italic">Nenhuma lista adicionada</span>
                         )}
                       </div>
-
-                      {/* Add list dropdown */}
                       {availableLists.length > 0 && (
                         <Select value="" onValueChange={(val) => addList(val)}>
                           <SelectTrigger className="rounded-none">
@@ -321,7 +277,6 @@ export default function Evaluations() {
                       )}
                     </div>
 
-                    {/* Score sliders grouped by list */}
                     {allSelectedCriteria.length > 0 && (
                       <div className="space-y-10 pt-4 border-t border-muted">
                         {selectedLists.map((list) => (
@@ -363,7 +318,6 @@ export default function Evaluations() {
                 )}
               </>
             ) : (
-              /* STUDENT: fixed banner criteria */
               <div className="space-y-8">
                 {BANNER_CRITERIA.map((c, idx) => (
                   <section key={c.key}>
@@ -387,19 +341,14 @@ export default function Evaluations() {
               </div>
             )}
 
-            {/* Comments */}
             <section className="pt-6 border-t border-muted">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">
-                Comentários / Parecer Final
-              </Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Comentários / Parecer Final</Label>
               <Textarea value={comments} onChange={(e) => setComments(e.target.value)}
                 className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." />
             </section>
 
-            {/* Declaration */}
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100">
-              <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)}
-                className="mt-1 accent-primary w-4 h-4" />
+              <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
               <label className="text-sm text-red-800 leading-relaxed cursor-pointer" onClick={() => setDeclared(!declared)}>
                 Declaro que realizei a avaliação de forma imparcial, seguindo os critérios estabelecidos
                 no regulamento da I Mostra de Projetos Integradores UniSENAI SP.

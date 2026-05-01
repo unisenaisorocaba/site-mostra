@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Users, UserPlus, Check, X, Trash2, Mail } from "lucide-react";
+import { GroupService, UserService } from "@/services";
 
 export default function Groups() {
   const [showCreate, setShowCreate] = useState(false);
@@ -16,38 +16,22 @@ export default function Groups() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const userQuery = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
-  const user = userQuery.data;
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
 
-  const { data: myGroups, isLoading: loadingMy } = useQuery({
+  const { data: myGroups = [], isLoading: loadingMy } = useQuery({
     queryKey: ["my-groups"],
-    queryFn: async () => {
-      const u = await base44.auth.me();
-      return base44.entities.Group.filter({ owner_email: u.email }, "-created_date");
-    },
+    queryFn: () => GroupService.listMine(),
     enabled: !!user,
-    initialData: [],
   });
 
-  const { data: invitedGroups, isLoading: loadingInvites } = useQuery({
+  const { data: invitedGroups = [] } = useQuery({
     queryKey: ["invited-groups"],
-    queryFn: async () => {
-      const u = await base44.auth.me();
-      const all = await base44.entities.Group.list("-created_date", 200);
-      return all.filter(g =>
-        g.owner_email !== u.email &&
-        g.members?.some(m => m.email === u.email)
-      );
-    },
+    queryFn: () => GroupService.listAsMember(),
     enabled: !!user,
-    initialData: [],
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data) => {
-      const u = await base44.auth.me();
-      return base44.entities.Group.create({ ...data, owner_email: u.email, members: [] });
-    },
+    mutationFn: (data) => GroupService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-groups"] });
       toast({ title: "Grupo criado!" });
@@ -59,8 +43,7 @@ export default function Groups() {
     mutationFn: async ({ group, email }) => {
       const existing = group.members || [];
       if (existing.some(m => m.email === email)) throw new Error("Já convidado");
-      const updated = [...existing, { email, name: email.split("@")[0], status: "pending" }];
-      return base44.entities.Group.update(group.id, { members: updated });
+      return GroupService.inviteMember(group, email, email.split("@")[0]);
     },
     onSuccess: (_, { group }) => {
       queryClient.invalidateQueries({ queryKey: ["my-groups"] });
@@ -71,12 +54,8 @@ export default function Groups() {
   });
 
   const respondMutation = useMutation({
-    mutationFn: async ({ group, email, accept }) => {
-      const updated = (group.members || []).map(m =>
-        m.email === email ? { ...m, status: accept ? "accepted" : "rejected" } : m
-      );
-      return base44.entities.Group.update(group.id, { members: updated });
-    },
+    mutationFn: ({ group, email, accept }) =>
+      GroupService.updateMemberStatus(group, email, accept ? "accepted" : "rejected"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invited-groups"] });
       queryClient.invalidateQueries({ queryKey: ["my-groups"] });
@@ -84,14 +63,16 @@ export default function Groups() {
     },
   });
 
-  const removeMember = async (group, email) => {
-    const updated = (group.members || []).filter(m => m.email !== email);
-    await base44.entities.Group.update(group.id, { members: updated });
-    queryClient.invalidateQueries({ queryKey: ["my-groups"] });
-  };
+  const removeMemberMutation = useMutation({
+    mutationFn: ({ group, email }) => {
+      const updated = (group.members || []).filter(m => m.email !== email);
+      return GroupService.update(group.id, { members: updated });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-groups"] }),
+  });
 
   const deleteGroup = useMutation({
-    mutationFn: (id) => base44.entities.Group.delete(id),
+    mutationFn: (id) => GroupService.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-groups"] }); toast({ title: "Grupo excluído." }); },
   });
 
@@ -117,7 +98,6 @@ export default function Groups() {
         </Button>
       </div>
 
-      {/* Create Modal */}
       {showCreate && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white border border-border w-full max-w-md p-8">
@@ -140,7 +120,6 @@ export default function Groups() {
         </div>
       )}
 
-      {/* Pending invites banner */}
       {myPendingInvites.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 border-l-4 border-l-yellow-500 p-6 mb-8">
           <h3 className="text-sm font-bold uppercase tracking-widest mb-3">Convites Pendentes ({myPendingInvites.length})</h3>
@@ -165,7 +144,6 @@ export default function Groups() {
         </div>
       )}
 
-      {/* My groups */}
       <h2 className="text-sm font-bold uppercase tracking-widest mb-4">Meus Grupos</h2>
       {loadingMy ? <p className="text-muted-foreground">Carregando...</p> : myGroups.length === 0 ? (
         <div className="text-center py-16 border border-dashed border-border mb-8">
@@ -185,7 +163,6 @@ export default function Groups() {
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
-              {/* Members */}
               <div className="p-6">
                 <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">Membros Convidados</h4>
                 {(!group.members || group.members.length === 0) ? (
@@ -199,25 +176,14 @@ export default function Groups() {
                           <span className="text-sm font-medium">{m.email}</span>
                           {statusBadge(m.status)}
                         </div>
-                        <Button variant="ghost" size="sm" onClick={() => removeMember(group, m.email)} className="text-destructive"><X className="w-3.5 h-3.5" /></Button>
+                        <Button variant="ghost" size="sm" onClick={() => removeMemberMutation.mutate({ group, email: m.email })} className="text-destructive"><X className="w-3.5 h-3.5" /></Button>
                       </div>
                     ))}
                   </div>
                 )}
-                {/* Invite form */}
                 <div className="flex gap-3">
-                  <Input
-                    value={inviteEmail[group.id] || ""}
-                    onChange={(e) => setInviteEmail({ ...inviteEmail, [group.id]: e.target.value })}
-                    placeholder="email@senaisp.edu.br"
-                    className="rounded-none flex-1"
-                    type="email"
-                  />
-                  <Button
-                    onClick={() => inviteMutation.mutate({ group, email: inviteEmail[group.id] })}
-                    disabled={!inviteEmail[group.id] || inviteMutation.isPending}
-                    className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-1"
-                  >
+                  <Input value={inviteEmail[group.id] || ""} onChange={(e) => setInviteEmail({ ...inviteEmail, [group.id]: e.target.value })} placeholder="email@senaisp.edu.br" className="rounded-none flex-1" type="email" />
+                  <Button onClick={() => inviteMutation.mutate({ group, email: inviteEmail[group.id] })} disabled={!inviteEmail[group.id] || inviteMutation.isPending} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-1">
                     <UserPlus className="w-4 h-4" /> Convidar
                   </Button>
                 </div>
@@ -227,7 +193,6 @@ export default function Groups() {
         </div>
       )}
 
-      {/* Groups I'm a member of */}
       {invitedGroups.filter(g => g.members?.some(m => m.email === user?.email && m.status === "accepted")).length > 0 && (
         <>
           <h2 className="text-sm font-bold uppercase tracking-widest mb-4">Grupos que Participo</h2>

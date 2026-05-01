@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Pencil, Trash2, ListChecks, ChevronDown, ChevronRight, FolderOpen } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { CriteriaService, UserService } from "@/services";
 
 const emptyList = { name: "", description: "" };
 const emptyCriteria = { name: "", description: "", weight: 1 };
@@ -15,43 +15,39 @@ export default function MyCriteria() {
   const [showListForm, setShowListForm] = useState(false);
   const [editingList, setEditingList] = useState(null);
   const [listForm, setListForm] = useState(emptyList);
-
   const [expandedList, setExpandedList] = useState(null);
-  const [showCriteriaForm, setShowCriteriaForm] = useState(null); // list id
-  const [editingCriteria, setEditingCriteria] = useState(null); // { listId, index }
+  const [showCriteriaForm, setShowCriteriaForm] = useState(null);
+  const [editingCriteria, setEditingCriteria] = useState(null);
   const [criteriaForm, setCriteriaForm] = useState(emptyCriteria);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
 
-  const { data: lists, isLoading } = useQuery({
+  const { data: lists = [], isLoading } = useQuery({
     queryKey: ["my-criteria-lists", user?.email],
-    queryFn: () => base44.entities.CriteriaList.filter({ owner_email: user.email }, "name"),
+    queryFn: () => CriteriaService.listMine(),
     enabled: !!user,
-    initialData: [],
   });
 
-  // --- List mutations ---
   const createList = useMutation({
-    mutationFn: (data) => base44.entities.CriteriaList.create({ ...data, owner_email: user.email, criteria: [] }),
+    mutationFn: (data) => CriteriaService.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-criteria-lists"] }); toast({ title: "Lista criada!" }); closeListForm(); },
   });
 
   const updateList = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.CriteriaList.update(id, data),
+    mutationFn: ({ id, data }) => CriteriaService.update(id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-criteria-lists"] }); toast({ title: "Lista atualizada!" }); closeListForm(); },
   });
 
   const deleteList = useMutation({
-    mutationFn: (id) => base44.entities.CriteriaList.delete(id),
+    mutationFn: (id) => CriteriaService.delete(id),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-criteria-lists"] }); toast({ title: "Lista excluída." }); },
   });
 
-  // --- Criteria inside a list (stored as array in the list) ---
-  const saveCriteriaToList = useMutation({
-    mutationFn: ({ listId, criteria }) => base44.entities.CriteriaList.update(listId, { criteria }),
+  const saveCriteria = useMutation({
+    mutationFn: ({ listId, criteria }) => CriteriaService.update(listId, { criteria }),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-criteria-lists"] }); toast({ title: "Critério salvo!" }); closeCriteriaForm(); },
   });
 
@@ -94,17 +90,16 @@ export default function MyCriteria() {
     } else {
       updated = [...existing, { ...criteriaForm, weight: Number(criteriaForm.weight) || 1 }];
     }
-    saveCriteriaToList.mutate({ listId: list.id, criteria: updated });
+    saveCriteria.mutate({ listId: list.id, criteria: updated });
   };
 
   const handleDeleteCriteria = (list, index) => {
     const updated = list.criteria.filter((_, i) => i !== index);
-    saveCriteriaToList.mutate({ listId: list.id, criteria: updated });
+    saveCriteria.mutate({ listId: list.id, criteria: updated });
   };
 
   return (
     <div>
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold font-heading">Listas de Critérios</h1>
@@ -116,7 +111,6 @@ export default function MyCriteria() {
         </Button>
       </div>
 
-      {/* List Form */}
       {showListForm && (
         <div className="bg-white border border-border p-8 mb-8 relative">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
@@ -124,26 +118,22 @@ export default function MyCriteria() {
           <div className="space-y-5">
             <div>
               <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Nome da Lista *</Label>
-              <Input value={listForm.name} onChange={(e) => setListForm({ ...listForm, name: e.target.value })}
-                className="rounded-none" placeholder="Ex: Banco de Dados, Linguagem de Programação..." />
+              <Input value={listForm.name} onChange={(e) => setListForm({ ...listForm, name: e.target.value })} className="rounded-none" placeholder="Ex: Banco de Dados, Linguagem de Programação..." />
             </div>
             <div>
               <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Descrição</Label>
-              <Textarea value={listForm.description} onChange={(e) => setListForm({ ...listForm, description: e.target.value })}
-                className="rounded-none h-20" placeholder="Ex: Critérios para disciplina de BD do 3º semestre" />
+              <Textarea value={listForm.description} onChange={(e) => setListForm({ ...listForm, description: e.target.value })} className="rounded-none h-20" placeholder="Ex: Critérios para disciplina de BD do 3º semestre" />
             </div>
           </div>
           <div className="flex gap-3 mt-6 pt-6 border-t border-muted">
             <Button variant="outline" onClick={closeListForm} className="rounded-none text-xs uppercase font-bold">Cancelar</Button>
-            <Button onClick={handleSaveList} disabled={!listForm.name.trim()}
-              className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
+            <Button onClick={handleSaveList} disabled={!listForm.name.trim()} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
               {editingList ? "Salvar Alterações" : "Criar Lista"}
             </Button>
           </div>
         </div>
       )}
 
-      {/* Lists */}
       {isLoading ? (
         <p className="text-muted-foreground">Carregando...</p>
       ) : lists.length === 0 ? (
@@ -159,12 +149,9 @@ export default function MyCriteria() {
           {lists.map((list) => {
             const isOpen = expandedList === list.id;
             const criteria = list.criteria || [];
-
             return (
               <div key={list.id} className="bg-white border border-border">
-                {/* List Header */}
-                <div className="flex items-center gap-3 p-5 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => setExpandedList(isOpen ? null : list.id)}>
+                <div className="flex items-center gap-3 p-5 cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => setExpandedList(isOpen ? null : list.id)}>
                   <div className="w-10 h-10 bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <FolderOpen className="w-5 h-5 text-primary" />
                   </div>
@@ -177,21 +164,16 @@ export default function MyCriteria() {
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                     <Button variant="ghost" size="sm" onClick={() => openEditList(list)}><Pencil className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir esta lista e todos os seus critérios?")) deleteList.mutate(list.id); }}
-                      className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir esta lista e todos os seus critérios?")) deleteList.mutate(list.id); }} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
                   </div>
                   {isOpen ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
                 </div>
 
-                {/* Expanded: criteria list */}
                 {isOpen && (
                   <div className="border-t border-border">
-                    {/* Criteria items */}
                     {criteria.map((c, idx) => (
                       <div key={idx} className="flex items-start gap-4 px-6 py-4 border-b border-muted last:border-b-0 bg-muted/10">
-                        <div className="w-8 h-8 bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">
-                          {c.weight || 1}x
-                        </div>
+                        <div className="w-8 h-8 bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary font-bold text-xs">{c.weight || 1}x</div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm">{c.name}</p>
                           {c.description && <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>}
@@ -202,45 +184,34 @@ export default function MyCriteria() {
                         </div>
                       </div>
                     ))}
-
-                    {/* Inline Criteria Form */}
                     {showCriteriaForm === list.id && (
                       <div className="px-6 py-5 bg-accent/30 border-b border-border">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">
-                          {editingCriteria ? "Editar Critério" : "Novo Critério"}
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4">{editingCriteria ? "Editar Critério" : "Novo Critério"}</p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div className="md:col-span-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">Nome *</Label>
-                            <Input value={criteriaForm.name} onChange={(e) => setCriteriaForm({ ...criteriaForm, name: e.target.value })}
-                              className="rounded-none" placeholder="Ex: Modelagem Relacional" />
+                            <Input value={criteriaForm.name} onChange={(e) => setCriteriaForm({ ...criteriaForm, name: e.target.value })} className="rounded-none" placeholder="Ex: Modelagem Relacional" />
                           </div>
                           <div>
                             <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">Peso</Label>
-                            <Input type="number" min={1} max={10} value={criteriaForm.weight}
-                              onChange={(e) => setCriteriaForm({ ...criteriaForm, weight: e.target.value })} className="rounded-none" />
+                            <Input type="number" min={1} max={10} value={criteriaForm.weight} onChange={(e) => setCriteriaForm({ ...criteriaForm, weight: e.target.value })} className="rounded-none" />
                           </div>
                         </div>
                         <div className="mb-4">
                           <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">Descrição</Label>
-                          <Input value={criteriaForm.description} onChange={(e) => setCriteriaForm({ ...criteriaForm, description: e.target.value })}
-                            className="rounded-none" placeholder="Instrução para o avaliador..." />
+                          <Input value={criteriaForm.description} onChange={(e) => setCriteriaForm({ ...criteriaForm, description: e.target.value })} className="rounded-none" placeholder="Instrução para o avaliador..." />
                         </div>
                         <div className="flex gap-3">
                           <Button variant="outline" size="sm" onClick={closeCriteriaForm} className="rounded-none text-xs uppercase font-bold">Cancelar</Button>
-                          <Button size="sm" onClick={() => handleSaveCriteria(list)} disabled={!criteriaForm.name.trim()}
-                            className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
+                          <Button size="sm" onClick={() => handleSaveCriteria(list)} disabled={!criteriaForm.name.trim()} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
                             {editingCriteria ? "Salvar" : "Adicionar"}
                           </Button>
                         </div>
                       </div>
                     )}
-
-                    {/* Add criteria button */}
                     {showCriteriaForm !== list.id && (
                       <div className="px-6 py-4">
-                        <Button variant="outline" size="sm" onClick={() => openAddCriteria(list.id)}
-                          className="rounded-none text-xs uppercase font-bold gap-2 border-dashed">
+                        <Button variant="outline" size="sm" onClick={() => openAddCriteria(list.id)} className="rounded-none text-xs uppercase font-bold gap-2 border-dashed">
                           <Plus className="w-3.5 h-3.5" /> Adicionar Critério
                         </Button>
                       </div>
