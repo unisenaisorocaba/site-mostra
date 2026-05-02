@@ -5,7 +5,6 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/mockAuthContext';
 import MockLoginPage from '@/components/MockLoginPage';
-
 import PublicLayout from '@/components/public/PublicLayout';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Home from '@/pages/Home';
