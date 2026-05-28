@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import MockLoginPage from '@/components/MockLoginPage';
@@ -21,11 +21,14 @@ import UserManagement from '@/pages/admin/UserManagement';
 import OralSchedule from '@/pages/admin/OralSchedule';
 
 const AuthenticatedApp = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoadingAuth } = useAuth();
 
-  // Mostra tela de login fake se não autenticado
-  if (!isAuthenticated) {
-    return <MockLoginPage />;
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
@@ -36,10 +39,11 @@ const AuthenticatedApp = () => {
         <Route path="/projetos" element={<Projects />} />
         <Route path="/projetos/:id" element={<ProjectDetail />} />
         <Route path="/fotos" element={<PublicPhotos />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <MockLoginPage />} />
       </Route>
 
       {/* Authenticated Routes */}
-      <Route element={<DashboardLayout />}>
+      <Route element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/projetos" element={<MyProjects />} />
         <Route path="/dashboard/avaliacoes" element={<Evaluations />} />

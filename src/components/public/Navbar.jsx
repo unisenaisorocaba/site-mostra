@@ -53,12 +53,13 @@ export default function Navbar() {
               </Button>
             </Link>
           ) : (
-            <Button
-              onClick={() => {}}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase font-bold tracking-wider px-6"
-            >
-              Entrar
-            </Button>
+            <Link to="/login">
+              <Button
+                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-none text-xs uppercase font-bold tracking-wider px-6"
+              >
+                Entrar
+              </Button>
+            </Link>
           )}
         </div>
 
@@ -86,12 +87,13 @@ export default function Navbar() {
               </Button>
             </Link>
           ) : (
-            <Button
-              onClick={() => {}}
-              className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
-            >
-              Entrar
-            </Button>
+            <Link to="/login" onClick={() => setOpen(false)} className="block w-full">
+              <Button
+                className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
+              >
+                Entrar
+              </Button>
+            </Link>
           )}
         </div>
       )}
