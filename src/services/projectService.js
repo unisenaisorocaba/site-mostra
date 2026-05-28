@@ -1,4 +1,4 @@
-import { mockBase44 as base44 } from "@/lib/mockClient";
+import api from "@/api/apiClient";
 
 export const CATEGORY_LABELS = {
   mecatronica: "Mecatrônica",
@@ -28,24 +28,64 @@ export const getCategoryImage = (category, size = 1200) => {
 };
 
 const ProjectService = {
-  listFeatured: () => base44.entities.Project.filter({ status: "aprovado" }, "-created_date", 5),
-  listApproved: () => base44.entities.Project.filter({ status: "aprovado" }),
-  listApprovedAll: () => base44.entities.Project.filter({ status: "aprovado" }, "-created_date", 100),
-  listOral: () => base44.entities.Project.filter({ presentation_type: "oral" }, "-created_date", 100),
-  listMine: async () => {
-    const user = await base44.auth.me();
-    return base44.entities.Project.filter({ created_by: user.email }, "-created_date");
+  listFeatured: async () => {
+    const res = await api.get("/projects/featured");
+    return res.data;
   },
-  getById: (id) =>
-    base44.entities.Project.filter({ id }, null, 1).then((r) => r?.[0] ?? null),
-  create: (data) => base44.entities.Project.create(data),
-  update: (id, data) => base44.entities.Project.update(id, data),
-  delete: (id) => base44.entities.Project.delete(id),
-  submit: (id) => base44.entities.Project.update(id, { status: "submetido" }),
+  listApproved: async () => {
+    const res = await api.get("/projects/approved");
+    return res.data;
+  },
+  listApprovedAll: async () => {
+    const res = await api.get("/projects/approved-all");
+    return res.data;
+  },
+  listOral: async () => {
+    const res = await api.get("/projects/oral");
+    return res.data;
+  },
+  listMine: async () => {
+    const res = await api.get("/projects/mine");
+    return res.data;
+  },
+  getById: async (id) => {
+    const res = await api.get(`/projects/${id}`);
+    return res.data;
+  },
+  create: async (data) => {
+    const res = await api.post("/projects", data);
+    return res.data;
+  },
+  update: async (id, data) => {
+    const res = await api.put(`/projects/${id}`, data);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/projects/${id}`);
+    return res.data;
+  },
+  submit: async (id) => {
+    const res = await api.post(`/projects/${id}/submit`);
+    return res.data;
+  },
   uploadFile: async (projectId, field, file) => {
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    await base44.entities.Project.update(projectId, { [field]: file_url });
-    return file_url;
+    // 1. Solicita URL pré-assinada do S3
+    const res = await api.post(`/projects/${projectId}/upload-url`, {
+      fileName: file.name,
+      contentType: file.type,
+      field,
+    });
+    const { uploadUrl, fileUrl } = res.data;
+
+    // 2. Faz o upload direto do arquivo para o S3
+    const axios = await import("axios").then((m) => m.default);
+    await axios.put(uploadUrl, file, {
+      headers: {
+        "Content-Type": file.type,
+      },
+    });
+
+    return fileUrl;
   },
 };
 

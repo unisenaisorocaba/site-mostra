@@ -1,32 +1,37 @@
-import { mockBase44 as base44 } from "@/lib/mockClient";
+import api from "@/api/apiClient";
 
 const GroupService = {
   listMine: async () => {
-    const user = await base44.auth.me();
-    return base44.entities.Group.filter({ owner_email: user.email }, "-created_date");
+    const res = await api.get("/groups/mine");
+    return res.data;
   },
   listAsMember: async () => {
-    const user = await base44.auth.me();
-    return base44.entities.Group.list("-created_date").then((groups) =>
-      groups.filter((g) => (g.members || []).some((m) => m.email === user.email))
-    );
+    const res = await api.get("/groups/member");
+    return res.data;
   },
   create: async (data) => {
-    const user = await base44.auth.me();
-    return base44.entities.Group.create({ ...data, owner_email: user.email, members: [] });
+    const res = await api.post("/groups", {
+      name: data.name,
+      description: data.description || "",
+    });
+    return res.data;
   },
-  update: (id, data) => base44.entities.Group.update(id, data),
-  delete: (id) => base44.entities.Group.delete(id),
-  inviteMember: (group, email, name = "") =>
-    base44.entities.Group.update(group.id, {
-      members: [...(group.members || []), { email, name, status: "pending" }],
-    }),
-  updateMemberStatus: (group, memberEmail, status) =>
-    base44.entities.Group.update(group.id, {
-      members: (group.members || []).map((m) =>
-        m.email === memberEmail ? { ...m, status } : m
-      ),
-    }),
+  update: async (id, data) => {
+    const res = await api.put(`/groups/${id}`, data);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/groups/${id}`);
+    return res.data;
+  },
+  inviteMember: async (group, email, name = "") => {
+    const res = await api.post(`/groups/${group.id}/invite`, { email, name });
+    return res.data;
+  },
+  updateMemberStatus: async (group, memberEmail, status) => {
+    const res = await api.put(`/groups/${group.id}/members/${memberEmail}`, { status });
+    return res.data;
+  },
 };
 
 export default GroupService;

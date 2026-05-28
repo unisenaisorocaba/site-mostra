@@ -1,18 +1,17 @@
-import { mockBase44 as base44 } from "@/lib/mockClient";
+import api from "@/api/apiClient";
 
 const EvaluationService = {
   listMine: async () => {
-    const user = await base44.auth.me();
-    return base44.entities.Evaluation.filter({ created_by: user.email }, "-created_date");
+    const res = await api.get("/evaluations/mine");
+    return res.data;
   },
-  listByProject: (projectId) =>
-    base44.entities.Evaluation.filter({ project_id: projectId }),
+  listByProject: async (projectId) => {
+    const res = await api.get(`/projects/${projectId}/evaluations`);
+    return res.data;
+  },
   create: async (data) => {
-    const user = await base44.auth.me();
-    return base44.entities.Evaluation.create({
-      ...data,
-      evaluator_name: user.full_name || user.email,
-    });
+    const res = await api.post("/evaluations", data);
+    return res.data;
   },
   average: (evaluation) => {
     if (evaluation.evaluation_type === "professor" && evaluation.criteria_scores?.length > 0) {

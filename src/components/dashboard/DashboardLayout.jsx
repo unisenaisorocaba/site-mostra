@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/mockAuthContext";
-import { mockBase44 as base44 } from "@/lib/mockClient";
+import { useAuth } from "@/lib/AuthContext";
+import UserService from "@/services/userService";
 
 const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -51,16 +51,14 @@ export default function DashboardLayout() {
 
   const isActive = (path) => location.pathname === path;
 
-  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => base44.auth.me() });
-  const { data: myProfile } = useQuery({
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
+  const { data: profile } = useQuery({
     queryKey: ["my-profile", user?.email],
-    queryFn: () => base44.entities.UserProfile.filter({ user_email: user.email }, null, 1),
+    queryFn: () => UserService.myProfile(),
     enabled: !!user,
-    initialData: [],
   });
 
-  const profile = myProfile?.[0];
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "ADMIN" || user?.role === "admin";
   const isTeacher = isAdmin || profile?.user_type === "professor";
   const navItems = isAdmin ? adminNavItems : isTeacher ? teacherNavItems : studentNavItems;
 

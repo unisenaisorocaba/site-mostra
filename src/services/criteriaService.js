@@ -1,32 +1,38 @@
-import { mockBase44 as base44 } from "@/lib/mockClient";
+import api from "@/api/apiClient";
 
 const CriteriaService = {
   listMine: async () => {
-    const user = await base44.auth.me();
-    return base44.entities.CriteriaList.filter({ owner_email: user.email }, "name");
+    const res = await api.get("/criteria/mine");
+    return res.data;
   },
   create: async (data) => {
-    const user = await base44.auth.me();
-    return base44.entities.CriteriaList.create({
-      ...data,
-      owner_email: user.email,
+    const res = await api.post("/criteria", {
+      name: data.name,
+      description: data.description,
       criteria: data.criteria ?? [],
     });
+    return res.data;
   },
-  update: (id, data) => base44.entities.CriteriaList.update(id, data),
-  delete: (id) => base44.entities.CriteriaList.delete(id),
-  addCriteria: (list, criteria) =>
-    base44.entities.CriteriaList.update(list.id, {
-      criteria: [...(list.criteria || []), criteria],
-    }),
-  removeCriteria: (list, index) =>
-    base44.entities.CriteriaList.update(list.id, {
-      criteria: (list.criteria || []).filter((_, i) => i !== index),
-    }),
-  updateCriteria: (list, index, data) =>
-    base44.entities.CriteriaList.update(list.id, {
-      criteria: (list.criteria || []).map((c, i) => (i === index ? { ...c, ...data } : c)),
-    }),
+  update: async (id, data) => {
+    const res = await api.put(`/criteria/${id}`, data);
+    return res.data;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/criteria/${id}`);
+    return res.data;
+  },
+  addCriteria: async (list, criteria) => {
+    const res = await api.post(`/criteria/${list.id}/items`, criteria);
+    return res.data;
+  },
+  removeCriteria: async (list, index) => {
+    const res = await api.delete(`/criteria/${list.id}/items/${index}`);
+    return res.data;
+  },
+  updateCriteria: async (list, index, data) => {
+    const res = await api.put(`/criteria/${list.id}/items/${index}`, data);
+    return res.data;
+  },
 };
 
 export default CriteriaService;
