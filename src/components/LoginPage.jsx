@@ -3,20 +3,18 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-export default function MockLoginPage() {
+export default function LoginPage() {
   const { login, register } = useAuth();
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Estados dos formulários
-  const [email, setEmail] = useState("admin@senaisp.edu.br");
-  const [password, setPassword] = useState("demo123");
+  // Form states
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState("STUDENT");
   const [enrollmentNumber, setEnrollmentNumber] = useState("");
   const [className, setClassName] = useState("");
 
@@ -31,9 +29,9 @@ export default function MockLoginPage() {
           name,
           email,
           password,
-          role: role === "STUDENT" ? "aluno" : "professor",
-          enrollmentNumber: role === "STUDENT" ? enrollmentNumber : undefined,
-          className: role === "STUDENT" ? className : undefined,
+          role: "STUDENT", // Only STUDENT register allowed
+          enrollmentNumber,
+          className,
         };
         await register(payload);
         toast.success("Cadastro realizado com sucesso! Faça login.");
@@ -123,53 +121,34 @@ export default function MockLoginPage() {
             </div>
 
             {isRegister && (
-              <>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
-                    Tipo de Usuário
+                    Matrícula / RA
                   </Label>
-                  <Select value={role} onValueChange={(v) => setRole(v)}>
-                    <SelectTrigger className="rounded-none">
-                      <SelectValue placeholder="Selecione o papel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="STUDENT">Aluno</SelectItem>
-                      <SelectItem value="TEACHER">Professor</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    type="text"
+                    value={enrollmentNumber}
+                    onChange={(e) => setEnrollmentNumber(e.target.value)}
+                    className="rounded-none"
+                    placeholder="Ex: 2026001"
+                    required
+                  />
                 </div>
-
-                {role === "STUDENT" && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
-                        Matrícula / RA
-                      </Label>
-                      <Input
-                        type="text"
-                        value={enrollmentNumber}
-                        onChange={(e) => setEnrollmentNumber(e.target.value)}
-                        className="rounded-none"
-                        placeholder="Ex: 2026001"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
-                        Turma / Curso
-                      </Label>
-                      <Input
-                        type="text"
-                        value={className}
-                        onChange={(e) => setClassName(e.target.value)}
-                        className="rounded-none"
-                        placeholder="Ex: DDS-3A"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-              </>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
+                    Turma / Curso
+                  </Label>
+                  <Input
+                    type="text"
+                    value={className}
+                    onChange={(e) => setClassName(e.target.value)}
+                    className="rounded-none"
+                    placeholder="Ex: DDS-3A"
+                    required
+                  />
+                </div>
+              </div>
             )}
 
             <Button
@@ -179,7 +158,7 @@ export default function MockLoginPage() {
             >
               {loading
                 ? (isRegister ? "Cadastrando..." : "Entrando...")
-                : (isRegister ? "Cadastrar-se" : "Entrar no Sistema")}
+                : (isRegister ? "Cadastrar-se (Apenas Alunos)" : "Entrar no Sistema")}
             </Button>
           </form>
 

@@ -4,10 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Users, MapPin, BookOpen, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectService, CATEGORY_LABELS, getCategoryImage } from "@/services";
+import { ProjectService } from "@/services";
+import { useCategories } from "@/hooks/useCategories";
 
 export default function ProjectDetail() {
   const { id } = useParams();
+  const { getCategoryLabel, getCategoryImage } = useCategories();
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -60,7 +62,7 @@ export default function ProjectDetail() {
         <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">
-              {CATEGORY_LABELS[project.category] || project.category}
+              {getCategoryLabel(project.category)}
               {project.room && ` • ${project.room}`}
             </span>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-3 leading-tight">
@@ -80,7 +82,7 @@ export default function ProjectDetail() {
             </span>
             {project.category && (
               <span className="px-3 py-1 border border-border text-[10px] font-bold uppercase tracking-widest">
-                {CATEGORY_LABELS[project.category]}
+                {getCategoryLabel(project.category)}
               </span>
             )}
           </div>
@@ -232,7 +234,7 @@ export default function ProjectDetail() {
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Categoria</span>
-              <span className="font-bold">{CATEGORY_LABELS[project.category] || project.category}</span>
+              <span className="font-bold">{getCategoryLabel(project.category)}</span>
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-1">Status</span>

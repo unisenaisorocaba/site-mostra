@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail, Upload } from "lucide-react";
 import { UserService } from "@/services";
 
 const typeConfig = {
@@ -24,6 +24,107 @@ export default function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const [showCSVImport, setShowCSVImport] = useState(false);
+  const [defaultPassword, setDefaultPassword] = useState("UniSenai2026");
+  const [parsedUsers, setParsedUsers] = useState([]);
+  const [csvFileName, setCsvFileName] = useState("");
+
+  const handleCSVChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) {
+        toast({ title: "Arquivo CSV vazio ou sem cabeçalhos", variant: "destructive" });
+        return;
+      }
+
+      const firstLine = lines[0];
+      const separator = firstLine.includes(";") ? ";" : ",";
+      
+      const headers = firstLine.split(separator).map(h => h.trim().toLowerCase());
+      
+      const emailIdx = headers.findIndex(h => h.includes("email") || h.includes("e-mail"));
+      const nameIdx = headers.findIndex(h => h.includes("nome") || h.includes("name") || h.includes("completo"));
+      const roleIdx = headers.findIndex(h => h.includes("papel") || h.includes("role") || h.includes("tipo"));
+      const regIdx = headers.findIndex(h => h.includes("matricula") || h.includes("ra") || h.includes("registration"));
+      const courseIdx = headers.findIndex(h => h.includes("turma") || h.includes("curso") || h.includes("class") || h.includes("course"));
+      const deptIdx = headers.findIndex(h => h.includes("departamento") || h.includes("department") || h.includes("depto"));
+
+      if (emailIdx === -1 || nameIdx === -1 || roleIdx === -1) {
+        toast({ title: "Colunas obrigatórias não encontradas (Nome, Email, Papel/Tipo)", variant: "destructive" });
+        return;
+      }
+
+      const usersList = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(separator).map(v => v.trim());
+        if (values.length < headers.length) continue;
+
+        const email = values[emailIdx];
+        const name = values[nameIdx];
+        const roleRaw = values[roleIdx]?.toLowerCase();
+        const registration = regIdx !== -1 ? values[regIdx] : "";
+        const course = courseIdx !== -1 ? values[courseIdx] : "";
+        const department = deptIdx !== -1 ? values[deptIdx] : "";
+
+        if (!email || !name || !roleRaw) continue;
+
+        let role = "aluno";
+        if (roleRaw.includes("prof") || roleRaw.includes("teach") || roleRaw.includes("docente")) {
+          role = "professor";
+        } else if (roleRaw.includes("adm")) {
+          role = "admin";
+        }
+
+        usersList.push({
+          email,
+          name,
+          role,
+          registration,
+          course,
+          department
+        });
+      }
+
+      setParsedUsers(usersList);
+    };
+
+    reader.readAsText(file);
+  };
+
+  const importMutation = useMutation({
+    mutationFn: ({ users, password }) => UserService.importBatch(users, password),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["user-profiles"] });
+      toast({ title: `Importação concluída! Criados: ${res.created}, Atualizados: ${res.updated}` });
+      if (res.errors?.length > 0) {
+        console.warn("Erros na importação:", res.errors);
+        toast({ title: `${res.errors.length} erro(s) durante a importação. Verifique o console.`, variant: "destructive" });
+      }
+      closeCSVModal();
+    },
+    onError: (err) => {
+      toast({ title: "Erro ao importar: " + err.message, variant: "destructive" });
+    }
+  });
+
+  const closeCSVModal = () => {
+    setShowCSVImport(false);
+    setParsedUsers([]);
+    setCsvFileName("");
+    setDefaultPassword("UniSenai2026");
+  };
+
+  const handleCSVSubmit = () => {
+    if (parsedUsers.length === 0 || !defaultPassword) return;
+    importMutation.mutate({ users: parsedUsers, password: defaultPassword });
+  };
+
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["user-profiles"],
     queryFn: () => UserService.listAll(),
@@ -31,7 +132,8 @@ export default function UserManagement() {
 
   const createMutation = useMutation({
     mutationFn: async (data) => {
-      await UserService.invite(data.user_email, "user");
+      const inviteRole = data.user_type === "professor" ? "professor" : "STUDENT";
+      await UserService.invite(data.user_email, inviteRole);
       return UserService.create(data);
     },
     onSuccess: () => {
@@ -93,9 +195,14 @@ export default function UserManagement() {
           <h1 className="text-3xl md:text-4xl font-bold font-heading">Gestão de Usuários</h1>
           <p className="text-muted-foreground mt-1">Cadastro de professores e alunos da Mostra</p>
         </div>
-        <Button onClick={() => { setEditing(null); setForm(emptyProfile); setShowForm(true); }} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider gap-2">
-          <Plus className="w-4 h-4" /> Cadastrar Usuário
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowCSVImport(true)} variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2">
+            <Upload className="w-4 h-4" /> Importar CSV
+          </Button>
+          <Button onClick={() => { setEditing(null); setForm(emptyProfile); setShowForm(true); }} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider gap-2">
+            <Plus className="w-4 h-4" /> Cadastrar Usuário
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-6 mb-8">
@@ -155,6 +262,76 @@ export default function UserManagement() {
               <Button variant="outline" onClick={closeForm} className="rounded-none text-xs uppercase font-bold">Cancelar</Button>
               <Button onClick={handleSave} disabled={!form.user_email || !form.full_name || createMutation.isPending || updateMutation.isPending} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
                 {editing ? "Salvar" : "Cadastrar e Convidar"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCSVImport && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-border w-full max-w-2xl p-8 max-h-[85vh] flex flex-col">
+            <h2 className="text-xl font-bold font-heading mb-4 border-b border-muted pb-4">Importação em Lote via CSV</h2>
+            
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Senha Padrão Inicial *</Label>
+                  <Input value={defaultPassword} onChange={(e) => setDefaultPassword(e.target.value)} className="rounded-none" placeholder="Ex: UniSenai2026" />
+                  <p className="text-[10px] text-muted-foreground mt-1">Todos os novos usuários importados iniciarão com esta senha.</p>
+                </div>
+                <div>
+                  <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Selecionar Arquivo CSV *</Label>
+                  <label className="flex items-center justify-between border border-border px-3 py-2 cursor-pointer bg-muted/20 hover:border-primary transition-colors">
+                    <span className="text-xs truncate max-w-xs">{csvFileName || "Escolher arquivo..."}</span>
+                    <input type="file" accept=".csv" className="hidden" onChange={handleCSVChange} />
+                    <Upload className="w-4 h-4 text-muted-foreground" />
+                  </label>
+                  <p className="text-[10px] text-muted-foreground mt-1">Colunas: Nome, Email, Papel (aluno/professor), RA/Matrícula, Curso/Turma, Departamento.</p>
+                </div>
+              </div>
+            </div>
+
+            {parsedUsers.length > 0 ? (
+              <div className="flex-1 overflow-y-auto border border-border mb-6">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-muted text-[10px] font-bold uppercase tracking-widest border-b border-border">
+                      <th className="p-3">Nome</th>
+                      <th className="p-3">Email</th>
+                      <th className="p-3">Papel</th>
+                      <th className="p-3">Matrícula/RA</th>
+                      <th className="p-3">Curso/Turma</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border text-xs">
+                    {parsedUsers.map((u, i) => (
+                      <tr key={i} className="hover:bg-muted/10">
+                        <td className="p-3 font-bold">{u.name}</td>
+                        <td className="p-3 text-muted-foreground">{u.email}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-none font-bold text-[10px] uppercase tracking-widest ${u.role === "professor" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="p-3">{u.registration || "—"}</td>
+                        <td className="p-3">{u.course || u.department || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-border py-12 mb-6 bg-muted/5">
+                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                <p className="text-sm text-muted-foreground">Nenhum arquivo CSV carregado ou dados vazios.</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-6 border-t border-muted">
+              <Button variant="outline" onClick={closeCSVModal} className="rounded-none text-xs uppercase font-bold">Cancelar</Button>
+              <Button onClick={handleCSVSubmit} disabled={parsedUsers.length === 0 || !defaultPassword || importMutation.isPending} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold">
+                {importMutation.isPending ? "Processando..." : `Confirmar Importação (${parsedUsers.length})`}
               </Button>
             </div>
           </div>

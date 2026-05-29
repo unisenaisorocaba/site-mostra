@@ -4,21 +4,25 @@ import ProjectCard from "@/components/projects/ProjectCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ProjectService, CATEGORY_LABELS } from "@/services";
-
-const categories = [
-  { key: "all", label: "Todos" },
-  ...Object.entries(CATEGORY_LABELS).map(([key, label]) => ({ key, label })),
-];
+import { ProjectService } from "@/services";
+import { useCategories } from "@/hooks/useCategories";
 
 export default function Projects() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
+  const { categories: categoriesData, isLoading: isLoadingCats } = useCategories();
 
-  const { data: projects = [], isLoading } = useQuery({
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects-public"],
     queryFn: () => ProjectService.listApprovedAll(),
   });
+
+  const isLoading = isLoadingProjects || isLoadingCats;
+
+  const categories = [
+    { key: "all", label: "Todos" },
+    ...categoriesData.map((cat) => ({ key: cat.code, label: cat.name })),
+  ];
 
   const filtered = projects.filter((p) => {
     const matchCategory = activeCategory === "all" || p.category === activeCategory;

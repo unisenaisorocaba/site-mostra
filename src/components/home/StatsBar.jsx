@@ -1,13 +1,20 @@
 import React from "react";
-
-const stats = [
-  { label: "Localização", value: "Sorocaba, SP" },
-  { label: "Projetos Expostos", value: "60+ Unidades" },
-  { label: "Categorias", value: "08 Áreas" },
-  { label: "Participantes", value: "240 Alunos" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { ProjectService } from "@/services";
 
 export default function StatsBar() {
+  const { data: statsData } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: () => ProjectService.getPublicStats(),
+  });
+
+  const stats = [
+    { label: "Localização", value: "Sorocaba, SP" },
+    { label: "Projetos Expostos", value: statsData ? `${statsData.projects} Unidades` : "..." },
+    { label: "Categorias", value: statsData ? `${statsData.categories} Áreas` : "..." },
+    { label: "Participantes", value: statsData ? `${statsData.students} Alunos` : "..." },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto -mt-1">
       <div className="grid grid-cols-2 md:grid-cols-4 bg-white border border-border">

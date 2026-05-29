@@ -4,7 +4,8 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import MockLoginPage from '@/components/MockLoginPage';
+import LoginPage from '@/components/LoginPage';
+import CategoryManagement from '@/pages/admin/CategoryManagement';
 import PublicLayout from '@/components/public/PublicLayout';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Home from '@/pages/Home';
@@ -39,13 +40,14 @@ const AuthenticatedApp = () => {
         <Route path="/projetos" element={<Projects />} />
         <Route path="/projetos/:id" element={<ProjectDetail />} />
         <Route path="/fotos" element={<PublicPhotos />} />
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <MockLoginPage />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
       </Route>
 
       {/* Authenticated Routes */}
       <Route element={isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" replace />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/projetos" element={<MyProjects />} />
+        <Route path="/dashboard/categorias" element={<CategoryManagement />} />
         <Route path="/dashboard/avaliacoes" element={<Evaluations />} />
         <Route path="/dashboard/criterios" element={<MyCriteria />} />
         <Route path="/dashboard/fotos" element={<ManagePhotos />} />

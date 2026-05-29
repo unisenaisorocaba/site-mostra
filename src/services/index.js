@@ -9,3 +9,4 @@ export { default as CriteriaService } from "./criteriaService";
 export { default as UserService } from "./userService";
 export { default as GroupService } from "./groupService";
 export { default as PhotoService } from "./photoService";
+export { default as CategoryService } from "./categoryService";

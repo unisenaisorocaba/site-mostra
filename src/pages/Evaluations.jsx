@@ -33,7 +33,7 @@ export default function Evaluations() {
     enabled: !!user,
   });
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
   const isTeacher = isAdmin || profile?.user_type === "professor";
 
   const { data: projects = [] } = useQuery({

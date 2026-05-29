@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
+import logoUnisenai from "./logo_unisenai.png";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -21,9 +22,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-6 h-16">
         <Link to="/" className="flex items-center gap-3">
-          <span className="text-xl font-bold uppercase text-primary tracking-tight font-heading">
-            UniSENAI SP
-          </span>
+          <img src={logoUnisenai} alt="UniSENAI" className="h-10 w-auto object-contain" />
           <span className="hidden sm:block text-xs font-bold uppercase text-muted-foreground tracking-widest border-l border-border pl-3">
             Mostra I
           </span>

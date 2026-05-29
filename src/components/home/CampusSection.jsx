@@ -30,7 +30,7 @@ export default function CampusSection() {
             </p>
           </div>
           <span className="text-xs font-mono text-primary tracking-wider">
-            COORDENADAS: -23.5015, -47.4521
+            Endereço: Praça Roberto Mange, 30 - Santa Rosália - CEP: 18090-110 - Sorocaba/SP
           </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

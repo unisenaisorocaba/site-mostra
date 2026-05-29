@@ -13,6 +13,7 @@ import {
   UsersRound,
   Mic,
   ListChecks,
+  Layers,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const studentNavItems = [
 const teacherNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
@@ -37,6 +39,7 @@ const teacherNavItems = [
 const adminNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },

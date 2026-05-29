@@ -29,6 +29,10 @@ const UserService = {
     const res = await api.post("/users/invite", { email, role });
     return res.data;
   },
+  importBatch: async (users, defaultPassword) => {
+    const res = await api.post("/users/batch", { users, defaultPassword });
+    return res.data;
+  },
   logout: async () => {
     try {
       await api.post("/auth/logout");

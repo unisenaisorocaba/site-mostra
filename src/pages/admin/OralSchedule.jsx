@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Clock, MapPin, CheckCircle, XCircle, Mic, Search } from "lucide-react";
-import { ProjectService, CATEGORY_LABELS } from "@/services";
+import { ProjectService } from "@/services";
+import { useCategories } from "@/hooks/useCategories";
 
 export default function OralSchedule() {
   const [search, setSearch] = useState("");
@@ -13,6 +14,7 @@ export default function OralSchedule() {
   const [editForm, setEditForm] = useState({ room: "", schedule_time: "" });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getCategoryLabel } = useCategories();
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["oral-projects"],
@@ -56,7 +58,7 @@ export default function OralSchedule() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap mb-1">
                     <h3 className="font-bold text-base">{project.title}</h3>
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground uppercase">{CATEGORY_LABELS[project.category] || project.category}</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground uppercase">{getCategoryLabel(project.category)}</span>
                     <span className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-700"><Mic className="w-3 h-3" /> ORAL</span>
                   </div>
                   <p className="text-sm text-muted-foreground">{project.team_name} · {project.advisor || "Sem orientador"}</p>

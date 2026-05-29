@@ -1,10 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { CATEGORY_LABELS, getCategoryImage } from "@/services";
+import { useCategories } from "@/hooks/useCategories";
 
 export default function ProjectCard({ project, featured = false }) {
+  const { getCategoryLabel, getCategoryImage } = useCategories();
   const image = project.thumbnail_url || getCategoryImage(project.category, 600);
+  const categoryLabel = getCategoryLabel(project.category);
 
   if (featured) {
     return (
@@ -21,7 +23,7 @@ export default function ProjectCard({ project, featured = false }) {
         </div>
         <div className="p-6 md:p-8 flex-1 flex flex-col border-l-4 border-primary">
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
-            DESTAQUE • {CATEGORY_LABELS[project.category] || project.category}
+            DESTAQUE • {categoryLabel}
           </span>
           <h3 className="text-xl md:text-2xl font-bold font-heading mb-3 leading-tight">
             {project.title}
@@ -56,7 +58,7 @@ export default function ProjectCard({ project, featured = false }) {
       </div>
       <div className="p-5">
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
-          {CATEGORY_LABELS[project.category] || project.category}
+          {categoryLabel}
         </span>
         <h4 className="text-lg font-bold font-heading mb-2 leading-tight">
           {project.title}

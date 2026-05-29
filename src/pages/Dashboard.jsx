@@ -23,10 +23,17 @@ export default function Dashboard() {
     queryFn: () => EvaluationService.listMine(),
   });
 
+  const { data: projectsForEval = [] } = useQuery({
+    queryKey: ["projects-for-eval"],
+    queryFn: () => ProjectService.listApproved(),
+  });
+
   const submitted = myProjects.filter((p) => p.status !== "rascunho").length;
   const avgScore = evaluations.length > 0
     ? (evaluations.reduce((sum, e) => sum + parseFloat(EvaluationService.average(e) || 0), 0) / evaluations.length).toFixed(1)
     : "—";
+
+  const pendingCount = Math.max(0, projectsForEval.length - evaluations.length);
 
   return (
     <div>
@@ -47,7 +54,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {[
-          { label: "Pendentes de Avaliação", value: Math.max(0, 5 - evaluations.length), note: "Projetos na fila", to: "/dashboard/avaliacoes", highlight: true },
+          { label: "Pendentes de Avaliação", value: pendingCount, note: "Projetos na fila", to: "/dashboard/avaliacoes", highlight: true },
           { label: "Avaliações Concluídas", value: evaluations.length, note: "Total neste semestre", to: "/dashboard/avaliacoes" },
           { label: "Média de Desempenho", value: avgScore, note: "/ 10 pontos", to: "/dashboard/avaliacoes" },
           { label: "Projetos Submetidos", value: submitted, note: "De " + myProjects.length + " cadastrados", to: "/dashboard/projetos" },

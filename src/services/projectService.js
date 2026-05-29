@@ -87,6 +87,10 @@ const ProjectService = {
 
     return fileUrl;
   },
+  getPublicStats: async () => {
+    const res = await api.get("/public/stats");
+    return res.data;
+  },
 };
 
 export default ProjectService;
