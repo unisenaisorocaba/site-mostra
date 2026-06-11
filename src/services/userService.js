@@ -42,6 +42,26 @@ const UserService = {
     localStorage.removeItem("token");
     window.location.href = "/";
   },
+  listMyGuests: async () => {
+    const res = await api.get("/users/me/guests");
+    return res.data;
+  },
+  createGuest: async (data) => {
+    const res = await api.post("/users/me/guests", data);
+    return res.data;
+  },
+  deleteGuest: async (id) => {
+    const res = await api.delete(`/users/me/guests/${id}`);
+    return res.data;
+  },
+  listAllGuests: async () => {
+    const res = await api.get("/users/guests");
+    return res.data;
+  },
+  updateMe: async (data) => {
+    const res = await api.put("/users/me/update", data);
+    return res.data;
+  },
 };
 
 export default UserService;

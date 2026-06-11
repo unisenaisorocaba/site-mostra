@@ -20,6 +20,8 @@ import ManagePhotos from '@/pages/ManagePhotos';
 import Groups from '@/pages/Groups';
 import UserManagement from '@/pages/admin/UserManagement';
 import OralSchedule from '@/pages/admin/OralSchedule';
+import Profile from '@/pages/Profile';
+import VisitorsManagement from '@/pages/admin/VisitorsManagement';
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -54,6 +56,8 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard/grupos" element={<Groups />} />
         <Route path="/dashboard/usuarios" element={<UserManagement />} />
         <Route path="/dashboard/oral" element={<OralSchedule />} />
+        <Route path="/dashboard/perfil" element={<Profile />} />
+        <Route path="/dashboard/visitantes" element={<VisitorsManagement />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />

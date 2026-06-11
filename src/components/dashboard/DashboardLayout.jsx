@@ -14,6 +14,7 @@ import {
   Mic,
   ListChecks,
   Layers,
+  User,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Meu Grupo", path: "/dashboard/grupos", icon: UsersRound },
+  { label: "Meu Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 
@@ -33,6 +35,8 @@ const teacherNavItems = [
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
+  { label: "Meu Perfil", path: "/dashboard/perfil", icon: User },
+  { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 
@@ -43,7 +47,9 @@ const adminNavItems = [
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },
-  { label: "Usuários", path: "/dashboard/usuarios", icon: Users },
+  { label: "Meu Perfil", path: "/dashboard/perfil", icon: User },
+  { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
+  { label: "Usuários", path: "/dashboard/usuarios", icon: UsersRound },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 

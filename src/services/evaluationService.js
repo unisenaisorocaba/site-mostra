@@ -18,7 +18,11 @@ const EvaluationService = {
       const sum = evaluation.criteria_scores.reduce((a, b) => a + (b.score || 0), 0);
       return (sum / evaluation.criteria_scores.length).toFixed(1);
     }
-    const fields = ["criteria_innovation", "criteria_technical", "criteria_presentation", "criteria_relevance"];
+    const newFields = ["criteria_organization", "criteria_clarity", "criteria_design", "criteria_objectivity", "criteria_impact"];
+    const hasNewFields = newFields.some(k => evaluation[k] !== undefined && evaluation[k] !== null);
+    const fields = hasNewFields 
+      ? newFields 
+      : ["criteria_innovation", "criteria_technical", "criteria_presentation", "criteria_relevance"];
     const vals = fields.map((k) => evaluation[k] || 0).filter((v) => v > 0);
     return vals.length === 0 ? "—" : (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
   },

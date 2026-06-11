@@ -10,17 +10,18 @@ import { ProjectService, EvaluationService, CriteriaService, UserService } from 
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
-  { key: "criteria_innovation", label: "Inovação Técnica e Originalidade", description: "O quão único é o projeto em relação às soluções existentes no mercado industrial?" },
-  { key: "criteria_technical", label: "Rigor Metodológico", description: "Qualidade da fundamentação teórica e aplicação de normas técnicas." },
-  { key: "criteria_presentation", label: "Qualidade da Apresentação", description: "Clareza, organização e comunicação do projeto e dos resultados." },
-  { key: "criteria_relevance", label: "Potencial de Impacto Industrial", description: "Escalabilidade e viabilidade econômica da implementação proposta." },
+  { key: "criteria_organization", label: "Organização Visual", description: "Distribuição dos elementos, alinhamento e facilidade de leitura." },
+  { key: "criteria_clarity", label: "Clareza das Informações", description: "Objetivos, solução e resultados são compreensíveis ao leitor." },
+  { key: "criteria_design", label: "Qualidade do Design", description: "Uso adequado de cores, imagens, gráficos e identidade visual." },
+  { key: "criteria_objectivity", label: "Objetividade do Conteúdo", description: "Informações relevantes apresentadas de forma concisa, sem excesso de texto." },
+  { key: "criteria_impact", label: "Impacto e Atratividade", description: "O banner desperta interesse e comunica bem a proposta do projeto." },
 ];
 
 export default function Evaluations() {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedListIds, setSelectedListIds] = useState([]);
   const [dynamicScores, setDynamicScores] = useState({});
-  const [bannerScores, setBannerScores] = useState({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
+  const [bannerScores, setBannerScores] = useState({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
   const [comments, setComments] = useState("");
   const [declared, setDeclared] = useState(false);
   const { toast } = useToast();
@@ -60,7 +61,7 @@ export default function Evaluations() {
   useEffect(() => {
     setSelectedListIds([]);
     setDynamicScores({});
-    setBannerScores({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
+    setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
   }, [selectedProjectId]);
 
   const addList = (listId) => {
@@ -89,7 +90,7 @@ export default function Evaluations() {
       setSelectedProjectId("");
       setSelectedListIds([]);
       setDynamicScores({});
-      setBannerScores({ criteria_innovation: 5, criteria_technical: 5, criteria_presentation: 5, criteria_relevance: 5 });
+      setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
       setComments("");
       setDeclared(false);
     },
@@ -210,10 +211,15 @@ export default function Evaluations() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-1">
-                        {BANNER_CRITERIA.map((c) => (
+                        {(ev.criteria_organization !== undefined && ev.criteria_organization !== null ? BANNER_CRITERIA : [
+                          { key: "criteria_innovation", label: "Inovação" },
+                          { key: "criteria_technical", label: "Técnico" },
+                          { key: "criteria_presentation", label: "Apresentação" },
+                          { key: "criteria_relevance", label: "Relevância" },
+                        ]).map((c) => (
                           <div key={c.key} className="flex justify-between text-xs">
                             <span className="text-muted-foreground truncate">{c.label.split(" ")[0]}</span>
-                            <span className="font-bold ml-2">{ev[c.key]}</span>
+                            <span className="font-bold ml-2">{ev[c.key] ?? "—"}</span>
                           </div>
                         ))}
                       </div>
