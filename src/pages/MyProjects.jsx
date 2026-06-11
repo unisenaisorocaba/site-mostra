@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { ProjectService } from "@/services";
+import { ProjectService, GroupService, UserService } from "@/services";
 import { useCategories } from "@/hooks/useCategories";
 
 const statusConfig = {
@@ -49,14 +49,47 @@ export default function MyProjects() {
     queryFn: () => ProjectService.listMine(),
   });
 
+  const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
+
+  const { data: myGroups = [] } = useQuery({
+    queryKey: ["my-groups-selection"],
+    queryFn: () => GroupService.listMine(),
+    enabled: !!user,
+  });
+
+  const { data: invitedGroups = [] } = useQuery({
+    queryKey: ["invited-groups-selection"],
+    queryFn: () => GroupService.listAsMember(),
+    enabled: !!user,
+  });
+
+  const eligibleGroups = [
+    ...myGroups,
+    ...invitedGroups.filter(g => g.members?.some(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.status === "accepted"))
+  ];
+
   const createMutation = useMutation({
     mutationFn: (data) => ProjectService.create(data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-projects"] }); toast({ title: "Projeto criado!" }); closeForm(); },
+    onError: (err) => {
+      toast({
+        title: "Erro ao criar projeto",
+        description: err.response?.data?.error || err.message,
+        variant: "destructive"
+      });
+    }
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => ProjectService.update(id, data),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["my-projects"] }); toast({ title: "Projeto atualizado!" }); closeForm(); },
+    onError: (err) => {
+      toast({
+        title: "Erro ao atualizar projeto",
+        description: err.response?.data?.error || err.message,
+        variant: "destructive"
+      });
+    }
   });
 
   const deleteMutation = useMutation({
@@ -80,7 +113,11 @@ export default function MyProjects() {
   };
 
   const handleSave = () => {
-    const data = { ...form, keywords: keywordsText.split(",").map(k => k.trim()).filter(Boolean), members: form.members.filter(m => m.name) };
+    const data = {
+      ...form,
+      keywords: keywordsText.split(",").map(k => k.trim()).filter(Boolean),
+      members: form.members.filter(m => m.email).map(m => ({ email: m.email, name: m.name || "" }))
+    };
     if (editing) updateMutation.mutate({ id: editing.id, data });
     else createMutation.mutate(data);
   };
@@ -193,14 +230,66 @@ export default function MyProjects() {
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Dados da Equipe</h2>
                   <div className="space-y-7">
+                    {eligibleGroups.length > 0 && (
+                      <div className="bg-muted/30 p-5 border border-border mb-6">
+                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Preencher a partir de um Grupo que pertenço</Label>
+                        <Select onValueChange={(groupId) => {
+                          const selectedGroup = eligibleGroups.find(g => g.id === groupId);
+                          if (selectedGroup) {
+                            const groupMembers = [];
+                            
+                            // Owner of the group
+                            const isCurrentOwner = selectedGroup.owner_email?.toLowerCase() === user?.email?.toLowerCase();
+                            groupMembers.push({
+                              name: isCurrentOwner ? (user?.name || "") : (selectedGroup.owner_email?.split("@")[0] || ""),
+                              email: selectedGroup.owner_email
+                            });
+
+                            // Accepted members
+                            const membersList = Array.isArray(selectedGroup.members) ? selectedGroup.members : [];
+                            membersList.forEach(m => {
+                              if (m.status === "accepted") {
+                                groupMembers.push({
+                                  name: m.name || m.email?.split("@")[0] || "",
+                                  email: m.email
+                                });
+                              }
+                            });
+
+                            setForm({
+                              ...form,
+                              team_name: selectedGroup.name,
+                              members: groupMembers
+                            });
+                            
+                            toast({ title: "Dados do grupo importados!" });
+                          }
+                        }}>
+                          <SelectTrigger className="rounded-none bg-white">
+                            <SelectValue placeholder="Selecione um grupo para importar..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {eligibleGroups.map(g => (
+                              <SelectItem key={g.id} value={g.id}>
+                                {g.name} ({g.owner_email?.toLowerCase() === user?.email?.toLowerCase() ? "Dono" : "Membro"})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Nome da Equipe *</Label>
                         <Input value={form.team_name} onChange={(e) => setForm({ ...form, team_name: e.target.value })} className="rounded-none" placeholder="Ex: Grupo Alpha-4" />
                       </div>
                       <div>
-                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Orientador</Label>
-                        <Input value={form.advisor} onChange={(e) => setForm({ ...form, advisor: e.target.value })} className="rounded-none" placeholder="Nome do professor orientador" />
+                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Orientador (E-mail)</Label>
+                        <Input value={form.advisor} onChange={(e) => setForm({ ...form, advisor: e.target.value })} className="rounded-none" placeholder="email@senaisp.edu.br" type="email" />
+                        {form.advisor && !form.advisor.includes("@") && (
+                          <span className="text-xs text-muted-foreground ml-1 block mt-1">✓ {form.advisor}</span>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -212,8 +301,12 @@ export default function MyProjects() {
                         {form.members.map((member, i) => (
                           <div key={i} className="flex gap-3 items-center p-4 border border-border bg-muted/20">
                             <span className="text-[10px] font-bold text-muted-foreground w-5">{i + 1}</span>
-                            <Input placeholder="Nome completo" value={member.name} onChange={(e) => updateMember(i, "name", e.target.value)} className="rounded-none flex-1" />
-                            <Input placeholder="E-mail" value={member.email} onChange={(e) => updateMember(i, "email", e.target.value)} className="rounded-none flex-1" type="email" />
+                            <div className="flex-1 flex flex-col gap-1">
+                              <Input placeholder="E-mail do membro" value={member.email} onChange={(e) => updateMember(i, "email", e.target.value)} className="rounded-none w-full" type="email" />
+                              {member.name && (
+                                <span className="text-xs text-muted-foreground ml-1">✓ {member.name}</span>
+                              )}
+                            </div>
                             {form.members.length > 1 && (
                               <Button type="button" variant="ghost" size="icon" onClick={() => removeMember(i)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
                             )}

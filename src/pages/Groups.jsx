@@ -42,7 +42,7 @@ export default function Groups() {
   const inviteMutation = useMutation({
     mutationFn: async ({ group, email }) => {
       const existing = group.members || [];
-      if (existing.some(m => m.email === email)) throw new Error("Já convidado");
+      if (existing.some(m => m.email?.toLowerCase() === email?.toLowerCase())) throw new Error("Já convidado");
       return GroupService.inviteMember(group, email, email.split("@")[0]);
     },
     onSuccess: (_, { group }) => {
@@ -65,7 +65,7 @@ export default function Groups() {
 
   const removeMemberMutation = useMutation({
     mutationFn: ({ group, email }) => {
-      const updated = (group.members || []).filter(m => m.email !== email);
+      const updated = (group.members || []).filter(m => m.email?.toLowerCase() !== email?.toLowerCase());
       return GroupService.update(group.id, { members: updated });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["my-groups"] }),
@@ -83,7 +83,11 @@ export default function Groups() {
   }[status]);
 
   const myPendingInvites = invitedGroups.filter(g =>
-    g.members?.some(m => m.email === user?.email && m.status === "pending")
+    g.members?.some(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.status === "pending")
+  );
+
+  const acceptedInvitedGroups = invitedGroups.filter(g =>
+    g.members?.some(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.status === "accepted")
   );
 
   return (
@@ -193,11 +197,11 @@ export default function Groups() {
         </div>
       )}
 
-      {invitedGroups.filter(g => g.members?.some(m => m.email === user?.email && m.status === "accepted")).length > 0 && (
+      {acceptedInvitedGroups.length > 0 && (
         <>
           <h2 className="text-sm font-bold uppercase tracking-widest mb-4">Grupos que Participo</h2>
           <div className="space-y-4">
-            {invitedGroups.filter(g => g.members?.some(m => m.email === user?.email && m.status === "accepted")).map((group) => (
+            {acceptedInvitedGroups.map((group) => (
               <div key={group.id} className="bg-white border border-border p-6">
                 <h3 className="font-bold text-base">{group.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">Criado por {group.owner_email}</p>

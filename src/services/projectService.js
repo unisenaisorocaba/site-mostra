@@ -69,23 +69,26 @@ const ProjectService = {
     return res.data;
   },
   uploadFile: async (projectId, field, file) => {
-    // 1. Solicita URL pré-assinada do S3
-    const res = await api.post(`/projects/${projectId}/upload-url`, {
+    const toBase64 = (f) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(f);
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+
+    const fileData = await toBase64(file);
+
+    const res = await api.post(`/projects/${projectId}/upload`, {
       fileName: file.name,
       contentType: file.type,
       field,
-    });
-    const { uploadUrl, fileUrl } = res.data;
-
-    // 2. Faz o upload direto do arquivo para o S3
-    const axios = await import("axios").then((m) => m.default);
-    await axios.put(uploadUrl, file, {
-      headers: {
-        "Content-Type": file.type,
-      },
+      fileData,
     });
 
-    return fileUrl;
+    return res.data.fileUrl;
   },
   getPublicStats: async () => {
     const res = await api.get("/public/stats");
