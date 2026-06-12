@@ -62,6 +62,14 @@ const UserService = {
     const res = await api.put("/users/me/update", data);
     return res.data;
   },
+  listTeachers: async () => {
+    const res = await api.get("/users/teachers");
+    return res.data;
+  },
+  listStudents: async () => {
+    const res = await api.get("/users/students");
+    return res.data;
+  },
 };
 
 export default UserService;

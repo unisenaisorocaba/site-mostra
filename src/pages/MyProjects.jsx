@@ -51,22 +51,15 @@ export default function MyProjects() {
 
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
 
-  const { data: myGroups = [] } = useQuery({
-    queryKey: ["my-groups-selection"],
-    queryFn: () => GroupService.listMine(),
-    enabled: !!user,
+  const { data: teachers = [] } = useQuery({
+    queryKey: ["teachers-list"],
+    queryFn: () => UserService.listTeachers(),
   });
 
-  const { data: invitedGroups = [] } = useQuery({
-    queryKey: ["invited-groups-selection"],
-    queryFn: () => GroupService.listAsMember(),
-    enabled: !!user,
+  const { data: students = [] } = useQuery({
+    queryKey: ["students-list"],
+    queryFn: () => UserService.listStudents(),
   });
-
-  const eligibleGroups = [
-    ...myGroups,
-    ...invitedGroups.filter(g => g.members?.some(m => m.email?.toLowerCase() === user?.email?.toLowerCase() && m.status === "accepted"))
-  ];
 
   const createMutation = useMutation({
     mutationFn: (data) => ProjectService.create(data),
@@ -140,9 +133,22 @@ export default function MyProjects() {
     toast({ title: "Projeto submetido para avaliação!" });
   };
 
-  const addMember = () => setForm({ ...form, members: [...form.members, { name: "", email: "" }] });
-  const updateMember = (i, field, value) => { const m = [...form.members]; m[i] = { ...m[i], [field]: value }; setForm({ ...form, members: m }); };
-  const removeMember = (i) => setForm({ ...form, members: form.members.filter((_, idx) => idx !== i) });
+  const addMember = () => setForm(prev => ({ ...prev, members: [...prev.members, { name: "", email: "" }] }));
+  const updateMember = (i, field, value) => {
+    setForm(prev => {
+      const m = [...prev.members];
+      m[i] = { ...m[i], [field]: value };
+      return { ...prev, members: m };
+    });
+  };
+  const updateMemberFields = (i, fieldsObj) => {
+    setForm(prev => {
+      const m = [...prev.members];
+      m[i] = { ...m[i], ...fieldsObj };
+      return { ...prev, members: m };
+    });
+  };
+  const removeMember = (i) => setForm(prev => ({ ...prev, members: prev.members.filter((_, idx) => idx !== i) }));
 
   const UploadBtn = ({ label, field, accept, projectId }) => (
     <label className="cursor-pointer">
@@ -195,21 +201,7 @@ export default function MyProjects() {
                         <SelectContent>{categories.map((c) => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}</SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Tipo de Apresentação</Label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {[{ val: "banner", label: "Somente Banner", desc: "Apresentação expositiva com banner impresso" }, { val: "oral", label: "Oral + Banner", desc: "Apresentação oral com slides (sujeito a aprovação)" }].map((opt) => (
-                          <div key={opt.val} onClick={() => setForm({ ...form, presentation_type: opt.val })}
-                            className={`p-4 border-2 cursor-pointer transition-all ${form.presentation_type === opt.val ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"}`}>
-                            <div className="flex items-center gap-2 mb-1">
-                              {opt.val === "oral" ? <Mic className="w-4 h-4 text-primary" /> : <Image className="w-4 h-4 text-primary" />}
-                              <span className="font-bold text-sm">{opt.label}</span>
-                            </div>
-                            <p className="text-xs text-muted-foreground">{opt.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+
                     <div>
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Resumo Executivo</Label>
                       <Textarea value={form.abstract} onChange={(e) => setForm({ ...form, abstract: e.target.value })} placeholder="Descreva o problema, a solução proposta e os impactos esperados..." className="rounded-none h-28" />
@@ -230,66 +222,28 @@ export default function MyProjects() {
                 <>
                   <h2 className="text-2xl font-bold font-heading mb-8 pb-4 border-b border-muted">Dados da Equipe</h2>
                   <div className="space-y-7">
-                    {eligibleGroups.length > 0 && (
-                      <div className="bg-muted/30 p-5 border border-border mb-6">
-                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Preencher a partir de um Grupo que pertenço</Label>
-                        <Select onValueChange={(groupId) => {
-                          const selectedGroup = eligibleGroups.find(g => g.id === groupId);
-                          if (selectedGroup) {
-                            const groupMembers = [];
-                            
-                            // Owner of the group
-                            const isCurrentOwner = selectedGroup.owner_email?.toLowerCase() === user?.email?.toLowerCase();
-                            groupMembers.push({
-                              name: isCurrentOwner ? (user?.name || "") : (selectedGroup.owner_email?.split("@")[0] || ""),
-                              email: selectedGroup.owner_email
-                            });
-
-                            // Accepted members
-                            const membersList = Array.isArray(selectedGroup.members) ? selectedGroup.members : [];
-                            membersList.forEach(m => {
-                              if (m.status === "accepted") {
-                                groupMembers.push({
-                                  name: m.name || m.email?.split("@")[0] || "",
-                                  email: m.email
-                                });
-                              }
-                            });
-
-                            setForm({
-                              ...form,
-                              team_name: selectedGroup.name,
-                              members: groupMembers
-                            });
-                            
-                            toast({ title: "Dados do grupo importados!" });
-                          }
-                        }}>
-                          <SelectTrigger className="rounded-none bg-white">
-                            <SelectValue placeholder="Selecione um grupo para importar..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {eligibleGroups.map(g => (
-                              <SelectItem key={g.id} value={g.id}>
-                                {g.name} ({g.owner_email?.toLowerCase() === user?.email?.toLowerCase() ? "Dono" : "Membro"})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Nome da Equipe *</Label>
                         <Input value={form.team_name} onChange={(e) => setForm({ ...form, team_name: e.target.value })} className="rounded-none" placeholder="Ex: Grupo Alpha-4" />
                       </div>
                       <div>
-                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Orientador (E-mail)</Label>
-                        <Input value={form.advisor} onChange={(e) => setForm({ ...form, advisor: e.target.value })} className="rounded-none" placeholder="email@senaisp.edu.br" type="email" />
-                        {form.advisor && !form.advisor.includes("@") && (
-                          <span className="text-xs text-muted-foreground ml-1 block mt-1">✓ {form.advisor}</span>
-                        )}
+                        <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Orientador *</Label>
+                        <Select
+                          value={form.advisor || ""}
+                          onValueChange={(val) => setForm({ ...form, advisor: val })}
+                        >
+                          <SelectTrigger className="rounded-none bg-white">
+                            <SelectValue placeholder="Selecione um orientador..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {teachers.map((t) => (
+                              <SelectItem key={t.id} value={t.full_name}>
+                                {t.full_name} ({t.user_email})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div>
@@ -301,14 +255,34 @@ export default function MyProjects() {
                         {form.members.map((member, i) => (
                           <div key={i} className="flex gap-3 items-center p-4 border border-border bg-muted/20">
                             <span className="text-[10px] font-bold text-muted-foreground w-5">{i + 1}</span>
-                            <div className="flex-1 flex flex-col gap-1">
-                              <Input placeholder="E-mail do membro" value={member.email} onChange={(e) => updateMember(i, "email", e.target.value)} className="rounded-none w-full" type="email" />
-                              {member.name && (
-                                <span className="text-xs text-muted-foreground ml-1">✓ {member.name}</span>
-                              )}
+                            <div className="flex-1 space-y-1.5">
+                              <Label className="text-[10px] font-bold uppercase tracking-widest block">Selecionar Aluno *</Label>
+                              <Select
+                                value={member.email || ""}
+                                onValueChange={(val) => {
+                                  const selected = students.find((s) => s.user_email === val);
+                                  if (selected) {
+                                    updateMemberFields(i, {
+                                      email: selected.user_email,
+                                      name: selected.full_name
+                                    });
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="rounded-none bg-white w-full text-xs h-9">
+                                  <SelectValue placeholder="Selecione um aluno..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {students.map((s) => (
+                                    <SelectItem key={s.id} value={s.user_email}>
+                                      {s.full_name} ({s.user_email})
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
                             {form.members.length > 1 && (
-                              <Button type="button" variant="ghost" size="icon" onClick={() => removeMember(i)} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                              <Button type="button" variant="ghost" size="icon" onClick={() => removeMember(i)} className="text-destructive self-end mb-1"><Trash2 className="w-4 h-4" /></Button>
                             )}
                           </div>
                         ))}
@@ -347,7 +321,6 @@ export default function MyProjects() {
                       { label: "Categoria", value: getCategoryLabel(form.category) },
                       { label: "Equipe", value: form.team_name },
                       { label: "Orientador", value: form.advisor || "—" },
-                      { label: "Apresentação", value: form.presentation_type === "oral" ? "Oral + Banner" : "Somente Banner" },
                     ].map((item, i) => (
                       <div key={i} className="flex justify-between py-3 border-b border-muted">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</span>

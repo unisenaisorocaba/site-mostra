@@ -155,7 +155,7 @@ export default function Profile() {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold font-heading">Meu Perfil</h1>
+        <h1 className="text-3xl md:text-4xl font-bold font-heading">Perfil</h1>
         <p className="text-muted-foreground mt-1">Gerencie suas informações da conta e convidados para o evento.</p>
       </div>
 
