@@ -70,6 +70,10 @@ const UserService = {
     const res = await api.get("/users/students");
     return res.data;
   },
+  resetPassword: async (id, newPassword) => {
+    const res = await api.put(`/users/profiles/${id}/reset-password`, { newPassword });
+    return res.data;
+  },
 };
 
 export default UserService;

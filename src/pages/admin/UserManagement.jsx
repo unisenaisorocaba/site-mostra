@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail, Upload, KeyRound } from "lucide-react";
 import { UserService } from "@/services";
 
 const typeConfig = {
@@ -164,6 +164,38 @@ export default function UserManagement() {
       toast({ title: "Usuário removido." });
     },
   });
+
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetUser, setResetUser] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ id, newPassword }) => UserService.resetPassword(id, newPassword),
+    onSuccess: () => {
+      toast({ title: "Senha redefinida com sucesso!" });
+      closeResetModal();
+    },
+    onError: (err) => {
+      toast({ title: "Erro ao redefinir senha: " + err.message, variant: "destructive" });
+    }
+  });
+
+  const openResetPassword = (profile) => {
+    setResetUser(profile);
+    setNewPassword("");
+    setShowResetModal(true);
+  };
+
+  const closeResetModal = () => {
+    setShowResetModal(false);
+    setResetUser(null);
+    setNewPassword("");
+  };
+
+  const handleResetPassword = () => {
+    if (!resetUser || !newPassword || newPassword.length < 4) return;
+    resetPasswordMutation.mutate({ id: resetUser.id, newPassword });
+  };
 
   const closeForm = () => { setShowForm(false); setEditing(null); setForm(emptyProfile); };
 
@@ -340,6 +372,39 @@ export default function UserManagement() {
         </div>
       )}
 
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-border w-full max-w-md p-8">
+            <h2 className="text-xl font-bold font-heading mb-6 border-b border-muted pb-4">Redefinir Senha</h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Definir uma nova senha para o usuário <strong>{resetUser?.full_name}</strong> ({resetUser?.user_email}).
+            </p>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Nova Senha *</Label>
+                <Input
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="rounded-none"
+                  placeholder="Mínimo 4 caracteres"
+                  type="password"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-muted">
+              <Button variant="outline" onClick={closeResetModal} className="rounded-none text-xs uppercase font-bold">Cancelar</Button>
+              <Button
+                onClick={handleResetPassword}
+                disabled={!newPassword || newPassword.length < 4 || resetPasswordMutation.isPending}
+                className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
+              >
+                {resetPasswordMutation.isPending ? "Salvando..." : "Redefinir Senha"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -384,6 +449,7 @@ export default function UserManagement() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => openResetPassword(profile)} title="Redefinir Senha"><KeyRound className="w-4 h-4 text-muted-foreground hover:text-primary" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(profile)}><Pencil className="w-4 h-4" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => { if (confirm("Remover usuário?")) deleteMutation.mutate(profile.id); }} className="text-destructive"><Trash2 className="w-4 h-4" /></Button>
                   </div>

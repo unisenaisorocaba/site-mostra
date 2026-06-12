@@ -213,7 +213,11 @@ export default function MyProjects() {
                       <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Categoria *</Label>
                       <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
                         <SelectTrigger className="rounded-none"><SelectValue /></SelectTrigger>
-                        <SelectContent>{categories.map((c) => <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>)}</SelectContent>
+                        <SelectContent>
+                          {Array.isArray(categories) && categories.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </div>
 
@@ -245,18 +249,20 @@ export default function MyProjects() {
                       <div>
                         <Label className="text-[10px] font-bold uppercase tracking-widest block mb-2">Orientador *</Label>
                         <Select
-                          value={form.advisor || ""}
+                          value={form.advisor || undefined}
                           onValueChange={(val) => setForm({ ...form, advisor: val })}
                         >
                           <SelectTrigger className="rounded-none bg-white">
                             <SelectValue placeholder="Selecione um orientador..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {teachers.map((t) => (
-                              <SelectItem key={t.id} value={t.full_name}>
-                                {t.full_name} ({t.user_email})
-                              </SelectItem>
-                            ))}
+                            {Array.isArray(teachers) && teachers
+                              .filter((t) => t.id && (t.full_name || t.user_email))
+                              .map((t) => (
+                                <SelectItem key={t.id} value={t.full_name || t.user_email}>
+                                  {t.full_name || t.user_email} ({t.user_email})
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -267,19 +273,19 @@ export default function MyProjects() {
                         <Button type="button" variant="ghost" size="sm" onClick={addMember} className="text-xs font-bold gap-1"><Plus className="w-3 h-3" /> Adicionar</Button>
                       </div>
                       <div className="space-y-3">
-                        {form.members.map((member, i) => (
+                        {Array.isArray(form.members) && form.members.map((member, i) => (
                           <div key={i} className="flex gap-3 items-center p-4 border border-border bg-muted/20">
                             <span className="text-[10px] font-bold text-muted-foreground w-5">{i + 1}</span>
                             <div className="flex-1 space-y-1.5">
                               <Label className="text-[10px] font-bold uppercase tracking-widest block">Selecionar Aluno *</Label>
                               <Select
-                                value={member.email || ""}
+                                value={member.email || undefined}
                                 onValueChange={(val) => {
-                                  const selected = students.find((s) => s.user_email === val);
+                                  const selected = Array.isArray(students) && students.find((s) => s.user_email === val);
                                   if (selected) {
                                     updateMemberFields(i, {
                                       email: selected.user_email,
-                                      name: selected.full_name
+                                      name: selected.full_name || selected.user_email
                                     });
                                   }
                                 }}
@@ -288,11 +294,13 @@ export default function MyProjects() {
                                   <SelectValue placeholder="Selecione um aluno..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {students.map((s) => (
-                                    <SelectItem key={s.id} value={s.user_email}>
-                                      {s.full_name} ({s.user_email})
-                                    </SelectItem>
-                                  ))}
+                                  {Array.isArray(students) && students
+                                    .filter((s) => s.id && s.user_email)
+                                    .map((s) => (
+                                      <SelectItem key={s.id} value={s.user_email}>
+                                        {s.full_name || s.user_email} ({s.user_email})
+                                      </SelectItem>
+                                    ))}
                                 </SelectContent>
                               </Select>
                             </div>
