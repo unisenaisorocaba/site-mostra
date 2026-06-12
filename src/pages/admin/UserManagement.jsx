@@ -179,11 +179,13 @@ export default function UserManagement() {
     else createMutation.mutate(form);
   };
 
-  const filtered = profiles.filter((p) => {
-    const matchType = filterType === "all" || p.user_type === filterType;
-    const matchSearch = !search || p.full_name?.toLowerCase().includes(search.toLowerCase()) || p.user_email?.toLowerCase().includes(search.toLowerCase());
-    return matchType && matchSearch;
-  });
+  const filtered = profiles
+    .filter((p) => {
+      const matchType = filterType === "all" || p.user_type === filterType;
+      const matchSearch = !search || p.full_name?.toLowerCase().includes(search.toLowerCase()) || p.user_email?.toLowerCase().includes(search.toLowerCase());
+      return matchType && matchSearch;
+    })
+    .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || "", "pt-BR"));
 
   const alunoCount = profiles.filter(p => p.user_type === "aluno").length;
   const professorCount = profiles.filter(p => p.user_type === "professor").length;

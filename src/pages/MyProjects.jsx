@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github } from "lucide-react";
+import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { ProjectService, GroupService, UserService } from "@/services";
+import { ProjectService, GroupService, UserService, EvaluationService } from "@/services";
 import { useCategories } from "@/hooks/useCategories";
+import { useNavigate } from "react-router-dom";
 
 const statusConfig = {
   aprovado: { label: "APROVADO", cls: "bg-green-100 text-green-700" },
@@ -41,6 +42,7 @@ export default function MyProjects() {
   const [uploading, setUploading] = useState({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { categories = [], getCategoryLabel } = useCategories();
 
@@ -50,6 +52,19 @@ export default function MyProjects() {
   });
 
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
+
+  const isStudent = user?.role?.toUpperCase() === "STUDENT";
+  const isTeacherOrAdmin = user?.role?.toUpperCase() === "TEACHER" || user?.role?.toUpperCase() === "ADMIN";
+
+  const calculateFinalGrade = (project) => {
+    if (!project.evaluations || project.evaluations.length === 0) return "—";
+    const averages = project.evaluations
+      .map((e) => parseFloat(EvaluationService.average(e)))
+      .filter((v) => !isNaN(v));
+    if (averages.length === 0) return "—";
+    const sum = averages.reduce((a, b) => a + b, 0);
+    return (sum / averages.length).toFixed(1);
+  };
 
   const { data: teachers = [] } = useQuery({
     queryKey: ["teachers-list"],
@@ -357,7 +372,7 @@ export default function MyProjects() {
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold font-heading">Meus Projetos</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-heading">Projetos</h1>
           <p className="text-muted-foreground mt-1">Painel de Submissão · Ciclo de Inovação 2026</p>
         </div>
         <Button onClick={() => { setEditing(null); setForm(emptyProject); setKeywordsText(""); setFormStep(0); setShowForm(true); }} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-2">
@@ -383,7 +398,10 @@ export default function MyProjects() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h3 className="font-bold text-base">{project.title}</h3>
+                      <h3 className="font-bold text-base">
+                        {project.project_number && `#${project.project_number} - `}
+                        {project.title}
+                      </h3>
                       <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${st.cls}`}>{st.label}</span>
                       {project.presentation_type === "oral" && (
                         <span className="px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
@@ -392,37 +410,120 @@ export default function MyProjects() {
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">{getCategoryLabel(project.category)} · {project.team_name}</p>
+
+                    {project.members && project.members.length > 0 && (
+                      <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-primary" /> Integrantes:
+                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {project.members.map((member, idx) => (
+                            <span key={idx} className="inline-flex items-center px-2 py-0.5 border border-border text-[10px] font-bold bg-muted/40 text-muted-foreground">
+                              {member.name || member.email}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {isTeacherOrAdmin && (
+                      <div className="mt-2 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-fit">
+                        <span className="text-xs font-bold text-foreground">
+                          Média: {calculateFinalGrade(project)}
+                        </span>
+                        <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!project.show_grade_publicly}
+                            onChange={(e) => {
+                              updateMutation.mutate({
+                                id: project.id,
+                                data: {
+                                  ...project,
+                                  show_grade_publicly: e.target.checked
+                                }
+                              });
+                            }}
+                            className="rounded-none border-border"
+                          />
+                          Publicar Nota no Site Público
+                        </label>
+                      </div>
+                    )}
+
                     <div className="flex gap-3 mt-2 flex-wrap">
-                      <span className={`text-[10px] font-bold uppercase ${project.banner_url ? "text-green-600" : "text-red-500"}`}>
-                        {project.banner_url ? "✓ Banner" : "✗ Banner (obrigatório)"}
-                      </span>
-                      {project.article_url && <span className="text-[10px] font-bold text-green-600">✓ Artigo</span>}
-                      {project.slides_url && <span className="text-[10px] font-bold text-green-600">✓ Slides</span>}
-                      {project.github_url && <span className="text-[10px] font-bold text-green-600">✓ GitHub</span>}
-                      {project.pitch_youtube_url && <span className="text-[10px] font-bold text-green-600">✓ Pitch</span>}
+                      {project.banner_url ? (
+                        <a href={project.banner_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ Banner
+                        </a>
+                      ) : (
+                        <span className="text-[10px] font-bold uppercase text-red-500">
+                          ✗ Banner (obrigatório)
+                        </span>
+                      )}
+                      {project.article_url && (
+                        <a href={project.article_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ Artigo
+                        </a>
+                      )}
+                      {project.slides_url && (
+                        <a href={project.slides_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ Slides
+                        </a>
+                      )}
+                      {project.thumbnail_url && (
+                        <a href={project.thumbnail_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ Thumbnail
+                        </a>
+                      )}
+                      {project.github_url && (
+                        <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ GitHub
+                        </a>
+                      )}
+                      {project.pitch_youtube_url && (
+                        <a href={project.pitch_youtube_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                          ✓ Pitch
+                        </a>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(project)}><Pencil className="w-4 h-4" /></Button>
+                    {isTeacherOrAdmin && project.status !== "rascunho" && (
+                      <Button
+                        size="sm"
+                        onClick={() => navigate(`/dashboard/avaliacoes?projectId=${project.id}`)}
+                        className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
+                      >
+                        Avaliar
+                      </Button>
+                    )}
+                    {(!isStudent || project.status === "rascunho") && (
+                      <Button variant="ghost" size="sm" onClick={() => openEdit(project)}><Pencil className="w-4 h-4" /></Button>
+                    )}
                     {project.status === "rascunho" && (
                       <Button size="sm" onClick={() => submitProject(project)} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-1">
                         <Send className="w-3.5 h-3.5" /> Submeter
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir projeto?")) deleteMutation.mutate(project.id); }} className="text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {(!isStudent || project.status === "rascunho") && (
+                      <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir projeto?")) deleteMutation.mutate(project.id); }} className="text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
-                  <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
-                  <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
-                  <UploadBtn label="Thumbnail" field="thumbnail_url" accept="image/*" projectId={project.id} />
-                  {project.presentation_type === "oral" && (
-                    <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
-                  )}
-                </div>
+                {(!isStudent || project.status === "rascunho") && (
+                  <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
+                    <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
+                    <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
+                    <UploadBtn label="Thumbnail" field="thumbnail_url" accept="image/*" projectId={project.id} />
+                    {project.presentation_type === "oral" && (
+                      <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

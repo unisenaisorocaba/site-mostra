@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { ProjectService, EvaluationService, CriteriaService, UserService } from "@/services";
 
 // Fixed criteria for student banner evaluations
@@ -18,8 +19,17 @@ const BANNER_CRITERIA = [
 ];
 
 export default function Evaluations() {
+  const [searchParams] = useSearchParams();
+  const queryProjectId = searchParams.get("projectId");
+
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedListIds, setSelectedListIds] = useState([]);
+
+  useEffect(() => {
+    if (queryProjectId) {
+      setSelectedProjectId(queryProjectId);
+    }
+  }, [queryProjectId]);
   const [dynamicScores, setDynamicScores] = useState({});
   const [bannerScores, setBannerScores] = useState({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
   const [comments, setComments] = useState("");
@@ -40,6 +50,15 @@ export default function Evaluations() {
   const { data: projects = [] } = useQuery({
     queryKey: ["projects-for-eval"],
     queryFn: () => ProjectService.listApproved(),
+  });
+
+  const filteredProjects = projects.filter((p) => {
+    if (user) {
+      const isCreator = p.created_by === user.email;
+      const isMember = (p.members || []).some((m) => m.email === user.email);
+      if (isCreator || isMember) return false;
+    }
+    return true;
   });
 
   const { data: myCriteriaLists = [] } = useQuery({
@@ -114,7 +133,11 @@ export default function Evaluations() {
     }
   };
 
-  const getProjectTitle = (id) => projects.find((p) => p.id === id)?.title ?? id;
+  const getProjectTitle = (id) => {
+    const p = projects.find((x) => x.id === id);
+    if (!p) return id;
+    return p.project_number ? `#${p.project_number} - ${p.title}` : p.title;
+  };
   const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
 
@@ -149,13 +172,16 @@ export default function Evaluations() {
                 <SelectValue placeholder="Selecione um projeto aprovado" />
               </SelectTrigger>
               <SelectContent>
-                {projects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>{p.title} — {p.team_name}</SelectItem>
+                {filteredProjects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.project_number ? `#${p.project_number} - ` : ""}
+                    {p.title} — {p.team_name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {selectedProjectId && (() => {
-              const p = projects.find((x) => x.id === selectedProjectId);
+              const p = filteredProjects.find((x) => x.id === selectedProjectId);
               return p ? (
                 <div className="space-y-2">
                   {[["Equipe", p.team_name], ["Orientador", p.advisor], ["Local", p.room]].filter(([, v]) => v).map(([label, value]) => (

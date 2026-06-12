@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Users, MapPin, BookOpen, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectService } from "@/services";
+import { ProjectService, EvaluationService } from "@/services";
 import { useCategories } from "@/hooks/useCategories";
 
 export default function ProjectDetail() {
@@ -17,6 +17,16 @@ export default function ProjectDetail() {
   });
 
   const project = projects;
+
+  const calculateFinalGrade = (p) => {
+    if (!p || !p.evaluations || p.evaluations.length === 0) return "—";
+    const averages = p.evaluations
+      .map((e) => parseFloat(EvaluationService.average(e)))
+      .filter((v) => !isNaN(v));
+    if (averages.length === 0) return "—";
+    const sum = averages.reduce((a, b) => a + b, 0);
+    return (sum / averages.length).toFixed(1);
+  };
 
   if (isLoading) {
     return (
@@ -62,6 +72,7 @@ export default function ProjectDetail() {
         <div className="flex flex-col lg:flex-row justify-between items-start gap-4">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">
+              {project.project_number && `PROJETO #${project.project_number} • `}
               {getCategoryLabel(project.category)}
               {project.room && ` • ${project.room}`}
             </span>
@@ -72,6 +83,12 @@ export default function ProjectDetail() {
               <p className="text-base md:text-lg text-muted-foreground max-w-2xl leading-relaxed">
                 {project.abstract}
               </p>
+            )}
+            {project.show_grade_publicly && (
+              <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-2 w-fit">
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">Nota Final:</span>
+                <span className="text-lg font-bold text-primary">{calculateFinalGrade(project)}</span>
+              </div>
             )}
           </div>
           <div className="flex gap-2 flex-wrap">

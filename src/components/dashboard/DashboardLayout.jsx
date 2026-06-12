@@ -23,17 +23,17 @@ import UserService from "@/services/userService";
 
 const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
 
 const teacherNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
-  { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
+  { label: "Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
@@ -41,11 +41,10 @@ const teacherNavItems = [
 
 const adminNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Meus Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
-  { label: "Apresentações Orais", path: "/dashboard/oral", icon: Mic },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
   { label: "Usuários", path: "/dashboard/usuarios", icon: UsersRound },
@@ -104,9 +103,8 @@ export default function DashboardLayout() {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed xl:sticky top-16 left-0 bottom-0 w-64 bg-white border-r border-border flex flex-col z-40 transition-transform ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"
-          }`}
+          className={`fixed xl:sticky top-16 left-0 bottom-0 w-64 bg-white border-r border-border flex flex-col z-40 transition-transform ${sidebarOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"
+            }`}
         >
           <div className="p-6 border-b border-border">
             <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground font-heading">
@@ -121,11 +119,10 @@ export default function DashboardLayout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${
-                    isActive(item.path)
-                      ? "text-primary border-l-4 border-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-l-4 border-transparent"
-                  }`}
+                  className={`flex items-center gap-3 px-6 py-3 text-sm font-bold uppercase tracking-wide transition-all ${isActive(item.path)
+                    ? "text-primary border-l-4 border-primary bg-primary/5"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50 border-l-4 border-transparent"
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   {item.label}

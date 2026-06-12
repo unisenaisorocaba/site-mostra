@@ -53,7 +53,12 @@ export default function PublicPhotos() {
             <div key={photo.id} className="break-inside-avoid cursor-pointer group" onClick={() => setLightbox(photo)}>
               <div className="border border-border overflow-hidden bg-white">
                 <img src={photo.photo_url} alt={photo.caption || "Foto do evento"} className="w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                {photo.caption && <p className="p-3 text-xs text-muted-foreground">{photo.caption}</p>}
+                <div className="p-3 space-y-1">
+                  {photo.caption && <p className="text-xs text-muted-foreground">{photo.caption}</p>}
+                  <p className="text-[10px] text-muted-foreground/80">
+                    Enviada por: <span className="font-semibold text-primary">{photo.uploader_name || "Visitante"}</span>
+                  </p>
+                </div>
               </div>
             </div>
           ))}
@@ -65,9 +70,14 @@ export default function PublicPhotos() {
           <button className="absolute top-6 right-6 text-white" onClick={() => setLightbox(null)}>
             <X className="w-8 h-8" />
           </button>
-          <div className="max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
-            <img src={lightbox.photo_url} alt={lightbox.caption || ""} className="max-w-full max-h-[85vh] object-contain" />
-            {lightbox.caption && <p className="text-white text-center mt-4 text-sm">{lightbox.caption}</p>}
+          <div className="max-w-4xl max-h-[90vh] text-center" onClick={(e) => e.stopPropagation()}>
+            <img src={lightbox.photo_url} alt={lightbox.caption || ""} className="max-w-full max-h-[85vh] object-contain mx-auto" />
+            <div className="mt-4 text-white space-y-1">
+              {lightbox.caption && <p className="text-sm">{lightbox.caption}</p>}
+              <p className="text-xs text-white/70">
+                Enviada por: <span className="font-semibold text-primary">{lightbox.uploader_name || "Visitante"}</span>
+              </p>
+            </div>
           </div>
         </div>
       )}
