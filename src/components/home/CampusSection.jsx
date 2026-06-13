@@ -8,13 +8,13 @@ const projects = [
     title: "Amor Inclusivo",
     axis: "Incluir para Evoluir",
     institution: "Associação Amor Inclusivo",
-    advisor: "Profª. Drª. Ariane Diniz",
+    advisor: "Profª. Drª. Ariane Diniz Silva",
     description:
       "Projeto de extensão voltado ao apoio da Associação Amor Inclusivo, entidade que promove a inclusão educacional, profissional e social de pessoas com deficiência. A iniciativa desenvolve ações de arrecadação de tampinhas plásticas e lacres metálicos, aliadas à conscientização ambiental e ao incentivo à coleta seletiva em escolas e na comunidade.",
     image: amorInclusivoImg,
   },
   {
-    title: "Sons da Mente",
+    title: "Vozes que cuidam",
     axis: "Reconstruindo Raízes",
     institution: "Indústrias de Sorocaba",
     advisor: "Profº. Esp. Gabriel Claro da Silva",
@@ -27,7 +27,7 @@ const projects = [
     title: "Colmeia Smart",
     axis: "Sustentabilidade 360",
     institution: "Comunidade e parceiros do projeto",
-    advisor: "Profº. Esp. Ederson Bonfim",
+    advisor: "Profº. Esp. Ederson Duarte Bonfim",
     description:
       "Iniciativa dedicada à preservação das abelhas do grupo Meliponas por meio do uso de tecnologias de monitoramento e análise de dados. O projeto une inovação, sustentabilidade e conscientização ambiental, contribuindo para a proteção dos polinizadores e dos ecossistemas brasileiros.",
     image: colmeiaImg,

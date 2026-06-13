@@ -40,29 +40,29 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold font-heading">Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-lg">Painel da I Mostra de Projetos Integradores · 2026</p>
+          <p className="text-muted-foreground mt-1 text-base md:text-lg">Painel da I Mostra de Projetos Integradores · 2026</p>
         </div>
-        <div className="flex gap-3">
-          <Link to="/dashboard/projetos">
-            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2">Meus Projetos</Button>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <Link to="/dashboard/projetos" className="flex-1 sm:flex-initial">
+            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2 w-full">Meus Projetos</Button>
           </Link>
-          <Link to="/dashboard/avaliacoes">
-            <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">Nova Avaliação</Button>
+          <Link to="/dashboard/avaliacoes" className="flex-1 sm:flex-initial">
+            <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider w-full">Nova Avaliação</Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
         {[
           { label: "Pendentes de Avaliação", value: pendingCount, note: "Projetos na fila", to: "/dashboard/avaliacoes", highlight: true },
           { label: "Avaliações Concluídas", value: evaluations.length, note: "Total neste semestre", to: "/dashboard/avaliacoes" },
           { label: "Média de Desempenho", value: avgScore, note: "/ 10 pontos", to: "/dashboard/avaliacoes" },
           { label: "Projetos Submetidos", value: submitted, note: "De " + myProjects.length + " cadastrados", to: "/dashboard/projetos" },
         ].map((card, i) => (
-          <Link key={i} to={card.to} className="bg-white border border-border p-6 relative overflow-hidden hover:border-primary transition-colors group">
+          <Link key={i} to={card.to} className="bg-white border border-border p-4 sm:p-6 relative overflow-hidden hover:border-primary transition-colors group">
             {card.highlight && <div className="absolute top-0 left-0 w-1 h-full bg-primary" />}
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{card.label}</p>
-            <h2 className="text-4xl font-bold font-heading text-foreground">{card.value}</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold font-heading text-foreground">{card.value}</h2>
             <p className="text-xs text-muted-foreground mt-2">{card.note}</p>
           </Link>
         ))}
@@ -90,20 +90,22 @@ export default function Dashboard() {
             {myProjects.slice(0, 5).map((project) => {
               const st = statusConfig[project.status] || statusConfig.rascunho;
               return (
-                <div key={project.id} className="p-6 flex items-center hover:bg-muted/30 transition-colors">
-                  <div className="w-12 h-12 bg-muted border border-border flex items-center justify-center flex-shrink-0 mr-6">
-                    <FolderOpen className="w-5 h-5 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h3 className="font-bold text-base">{project.title}</h3>
-                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${st.cls}`}>{st.label}</span>
+                <div key={project.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                      <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{project.team_name}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-bold text-sm sm:text-base">{project.title}</h3>
+                        <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest ${st.cls}`}>{st.label}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-muted-foreground">{project.team_name}</p>
+                    </div>
                   </div>
-                  <Link to="/dashboard/projetos">
+                  <Link to="/dashboard/projetos" className="w-full sm:w-auto">
                     <Button size="sm" variant={project.status === "rascunho" ? "default" : "outline"}
-                      className={`rounded-none text-xs uppercase font-bold ${project.status === "rascunho" ? "bg-primary text-primary-foreground" : ""}`}>
+                      className={`rounded-none text-xs uppercase font-bold w-full sm:w-auto ${project.status === "rascunho" ? "bg-primary text-primary-foreground" : ""}`}>
                       {project.status === "rascunho" ? "Submeter" : "Ver Detalhes"}
                     </Button>
                   </Link>

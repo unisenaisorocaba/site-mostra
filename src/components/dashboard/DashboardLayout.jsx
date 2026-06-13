@@ -78,24 +78,24 @@ export default function DashboardLayout() {
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-bold uppercase text-primary tracking-tight font-heading">
-              UniSENAI SP - Campus Sorocaba
+            <span className="text-lg sm:text-xl font-bold uppercase text-primary tracking-tight font-heading">
+              UniSENAI<span className="hidden md:inline"> SP - Campus Sorocaba</span>
             </span>
           </Link>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-4">
           <Link to="/">
-            <Button variant="ghost" size="sm" className="text-xs uppercase font-bold tracking-wide gap-2">
-              <ChevronLeft className="w-4 h-4" /> Site Público
+            <Button variant="ghost" size="sm" className="text-xs uppercase font-bold tracking-wide gap-1.5 px-2 sm:px-3">
+              <ChevronLeft className="w-4 h-4" /> <span className="hidden sm:inline">Site Público</span>
             </Button>
           </Link>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => logout()}
-            className="text-xs uppercase font-bold tracking-wide gap-2 text-destructive"
+            className="text-xs uppercase font-bold tracking-wide gap-1.5 text-destructive px-2 sm:px-3"
           >
-            <LogOut className="w-4 h-4" /> Sair
+            <LogOut className="w-4 h-4" /> <span className="hidden sm:inline">Sair</span>
           </Button>
         </div>
       </header>

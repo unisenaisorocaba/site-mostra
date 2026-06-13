@@ -166,10 +166,10 @@ export default function MyProjects() {
   const removeMember = (i) => setForm(prev => ({ ...prev, members: prev.members.filter((_, idx) => idx !== i) }));
 
   const UploadBtn = ({ label, field, accept, projectId }) => (
-    <label className="cursor-pointer">
+    <label className="cursor-pointer block w-full sm:w-auto">
       <input type="file" accept={accept} className="hidden" onChange={(e) => handleFileUpload(e, projectId, field)} />
-      <span className="inline-flex items-center gap-1.5 px-3 py-2 border border-border text-[10px] font-bold uppercase hover:border-primary transition-colors cursor-pointer">
-        <Upload className="w-3 h-3" /> {uploading[field] ? "Enviando..." : label}
+      <span className="flex sm:inline-flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 border border-border text-[10px] font-bold uppercase hover:border-primary transition-colors cursor-pointer w-full sm:w-auto">
+        <Upload className="w-3.5 h-3.5 sm:w-3 sm:h-3" /> {uploading[field] ? "Enviando..." : label}
       </span>
     </label>
   );
@@ -400,143 +400,159 @@ export default function MyProjects() {
             const st = statusConfig[project.status] || statusConfig.rascunho;
             return (
               <div key={project.id} className="bg-white border border-border">
-                <div className="p-6 flex items-start gap-4 flex-wrap">
-                  <div className="w-14 h-14 bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                    <FolderOpen className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-1 flex-wrap">
-                      <h3 className="font-bold text-base">
-                        {project.project_number && `#${project.project_number} - `}
-                        {project.title}
-                      </h3>
-                      <span className={`px-2 py-0.5 text-[10px] font-bold uppercase ${st.cls}`}>{st.label}</span>
-                      {project.presentation_type === "oral" && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
-                          <Mic className="w-3 h-3" /> ORAL {project.oral_approved ? "✓ APROVADO" : "- PENDENTE"}
-                        </span>
-                      )}
+                {/* Main Card Content: Stack vertically on mobile, row on desktop */}
+                <div className="p-4 sm:p-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                  {/* Left Side: Icon & Details */}
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-muted border border-border flex items-center justify-center flex-shrink-0">
+                      <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{getCategoryLabel(project.category)} · {project.team_name}</p>
+                    <div className="flex-1 min-w-0">
+                      {/* Title & Badge */}
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-bold text-sm sm:text-base">
+                          {project.project_number && `#${project.project_number} - `}
+                          {project.title}
+                        </h3>
+                        <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase ${st.cls}`}>{st.label}</span>
+                        {project.presentation_type === "oral" && (
+                          <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
+                            <Mic className="w-3 h-3" /> ORAL {project.oral_approved ? "✓ APROVADO" : "- PENDENTE"}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <p className="text-xs sm:text-sm text-muted-foreground">{getCategoryLabel(project.category)} · {project.team_name}</p>
 
-                    {project.members && project.members.length > 0 && (
-                      <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5 text-primary" /> Integrantes:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {project.members.map((member, idx) => (
-                            <span key={idx} className="inline-flex items-center px-2 py-0.5 border border-border text-[10px] font-bold bg-muted/40 text-muted-foreground">
-                              {member.name || member.email}
-                            </span>
-                          ))}
+                      {/* Members */}
+                      {project.members && project.members.length > 0 && (
+                        <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+                          <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5 text-primary" /> Integrantes:
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {project.members.map((member, idx) => (
+                              <span key={idx} className="inline-flex items-center px-2 py-0.5 border border-border text-[9px] sm:text-[10px] font-bold bg-muted/40 text-muted-foreground">
+                                {member.name || member.email}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {isTeacherOrAdmin && (
-                      <div className="mt-2 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-fit">
-                        <span className="text-xs font-bold text-foreground">
-                          Média: {calculateFinalGrade(project)}
-                        </span>
-                        <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!project.show_grade_publicly}
-                            onChange={(e) => {
-                              updateMutation.mutate({
-                                id: project.id,
-                                data: {
-                                  ...project,
-                                  show_grade_publicly: e.target.checked
-                                }
-                              });
-                            }}
-                            className="rounded-none border-border"
-                          />
-                          Publicar Nota no Site Público
-                        </label>
-                      </div>
-                    )}
+                      {/* Grades for Teachers/Admins */}
+                      {isTeacherOrAdmin && (
+                        <div className="mt-2.5 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-fit">
+                          <span className="text-xs font-bold text-foreground">
+                            Média: {calculateFinalGrade(project)}
+                          </span>
+                          <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!project.show_grade_publicly}
+                              onChange={(e) => {
+                                updateMutation.mutate({
+                                  id: project.id,
+                                  data: {
+                                    ...project,
+                                    show_grade_publicly: e.target.checked
+                                  }
+                                });
+                              }}
+                              className="rounded-none border-border"
+                            />
+                            Publicar Nota no Site Público
+                          </label>
+                        </div>
+                      )}
 
-                    <div className="flex gap-3 mt-2 flex-wrap">
-                      {project.banner_url ? (
-                        <a href={project.banner_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Banner
-                        </a>
-                      ) : (
-                        <span className="text-[10px] font-bold uppercase text-red-500">
-                          ✗ Banner (obrigatório)
-                        </span>
-                      )}
-                      {project.article_url && (
-                        <a href={project.article_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Artigo
-                        </a>
-                      )}
-                      {project.slides_url && (
-                        <a href={project.slides_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Slides
-                        </a>
-                      )}
-                      {project.thumbnail_url && (
-                        <a href={project.thumbnail_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Imagem de Capa
-                        </a>
-                      )}
-                      {project.github_url && (
-                        <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ GitHub
-                        </a>
-                      )}
-                      {project.pitch_youtube_url && (
-                        <a href={project.pitch_youtube_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Pitch
-                        </a>
-                      )}
+                      {/* Links Indicator */}
+                      <div className="flex gap-3 mt-3 flex-wrap border-t border-dashed border-border/60 pt-2.5">
+                        {project.banner_url ? (
+                          <a href={project.banner_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ Banner
+                          </a>
+                        ) : (
+                          <span className="text-[10px] font-bold uppercase text-red-500">
+                            ✗ Banner (obrigatório)
+                          </span>
+                        )}
+                        {project.article_url && (
+                          <a href={project.article_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ Artigo
+                          </a>
+                        )}
+                        {project.slides_url && (
+                          <a href={project.slides_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ Slides
+                          </a>
+                        )}
+                        {project.thumbnail_url && (
+                          <a href={project.thumbnail_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ Imagem de Capa
+                          </a>
+                        )}
+                        {project.github_url && (
+                          <a href={project.github_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ GitHub
+                          </a>
+                        )}
+                        {project.pitch_youtube_url && (
+                          <a href={project.pitch_youtube_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
+                            ✓ Pitch
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {isTeacherOrAdmin && project.status !== "rascunho" && (
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/dashboard/avaliacoes?projectId=${project.id}`)}
-                        className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold"
-                      >
-                        Avaliar
-                      </Button>
-                    )}
-                    {(!isStudent || project.status === "rascunho") && (
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(project)}><Pencil className="w-4 h-4" /></Button>
-                    )}
-                    {project.status === "rascunho" && (
-                      <Button size="sm" onClick={() => submitProject(project)} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-1">
-                        <Send className="w-3.5 h-3.5" /> Submeter
-                      </Button>
-                    )}
-                    {(!isStudent || project.status === "rascunho") && (
-                      <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir projeto?")) deleteMutation.mutate(project.id); }} className="text-destructive">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
+
+                  {/* Right Side: Action Buttons (Bottom row on mobile, top right on desktop) */}
+                  {(isTeacherOrAdmin || (isStudent && project.status === "rascunho")) && (
+                    <div className="flex items-center gap-2 lg:self-start w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0 mt-2 lg:mt-0">
+                      {isTeacherOrAdmin && project.status !== "rascunho" && (
+                        <Button
+                          size="sm"
+                          onClick={() => navigate(`/dashboard/avaliacoes?projectId=${project.id}`)}
+                          className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold flex-1 sm:flex-initial h-10 lg:h-9"
+                        >
+                          Avaliar
+                        </Button>
+                      )}
+                      {(!isStudent || project.status === "rascunho") && (
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(project)} className="w-10 h-10 lg:w-9 lg:h-9 border border-border lg:border-none rounded-none shrink-0 flex items-center justify-center"><Pencil className="w-4 h-4" /></Button>
+                      )}
+                      {project.status === "rascunho" && (
+                        <Button size="sm" onClick={() => submitProject(project)} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-1 flex-1 sm:flex-initial h-10 lg:h-9">
+                          <Send className="w-3.5 h-3.5" /> Submeter
+                        </Button>
+                      )}
+                      {(!isStudent || project.status === "rascunho") && (
+                        <Button variant="ghost" size="sm" onClick={() => { if (confirm("Excluir projeto?")) deleteMutation.mutate(project.id); }} className="text-destructive w-10 h-10 lg:w-9 lg:h-9 border border-border lg:border-none rounded-none shrink-0 flex items-center justify-center">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
+
                 {/* Upload Section - Allow submitted projects to only upload/change Imagem de Capa */}
                 {(() => {
                   const showAllUploads = !isStudent || project.status === "rascunho";
                   return (
-                    <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
-                      {showAllUploads && (
-                        <>
-                          <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
-                          <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
-                        </>
-                      )}
-                      <UploadBtn label="Imagem de Capa" field="thumbnail_url" accept="image/*" projectId={project.id} />
-                      {showAllUploads && project.presentation_type === "oral" && (
-                        <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
-                      )}
+                    <div className="px-4 sm:px-6 pb-5 border-t border-muted pt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                      <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground shrink-0">Upload:</span>
+                      <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full">
+                        {showAllUploads && (
+                          <>
+                            <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
+                            <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
+                          </>
+                        )}
+                        <UploadBtn label="Imagem de Capa" field="thumbnail_url" accept="image/*" projectId={project.id} />
+                        {showAllUploads && project.presentation_type === "oral" && (
+                          <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
+                        )}
+                      </div>
                     </div>
                   );
                 })()}
