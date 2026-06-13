@@ -56,7 +56,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-primary flex items-center justify-center">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="font-bold text-xl tracking-tight">UniSENAI SP</span>
+            <span className="font-bold text-xl tracking-tight">UniSENAI SP - Campus Sorocaba</span>
           </div>
           <h1 className="text-2xl font-bold font-heading mb-1">
             {isRegister ? "Criar nova conta" : "Acesso ao Sistema"}

@@ -44,7 +44,7 @@ const adminNavItems = [
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
-  { label: "Meus Critérios", path: "/dashboard/criterios", icon: ListChecks },
+  { label: "Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
   { label: "Usuários", path: "/dashboard/usuarios", icon: UsersRound },
@@ -79,7 +79,7 @@ export default function DashboardLayout() {
           </button>
           <Link to="/" className="flex items-center gap-2">
             <span className="text-xl font-bold uppercase text-primary tracking-tight font-heading">
-              UniSENAI SP
+              UniSENAI SP - Campus Sorocaba
             </span>
           </Link>
         </div>

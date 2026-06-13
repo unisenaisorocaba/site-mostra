@@ -12,10 +12,10 @@ export default function Footer() {
               Organização
             </span>
             <span className="text-xl font-bold uppercase tracking-tight font-heading">
-              UniSENAI SP
+              UniSENAI SP - Campus Sorocaba
             </span>
             <p className="mt-3 text-sm opacity-60">
-              Campus Sorocaba — Formando os profissionais da Indústria 4.0
+              Formando os profissionais da Indústria 4.0
             </p>
           </div>
           <div>
@@ -47,7 +47,7 @@ export default function Footer() {
         </div>
         <div className="mt-10 pt-6 border-t border-background/10 text-center">
           <p className="text-xs opacity-40">
-            © 2026 UniSENAI SP — I Mostra de Projetos Integradores. Todos os direitos reservados.
+            © 2026 UniSENAI SP - Campus Sorocaba — I Mostra de Projetos Integradores. Todos os direitos reservados.
           </p>
         </div>
       </div>

@@ -20,7 +20,7 @@ export default function HeroSection() {
           I Mostra de Projetos Integradores UniSENAI SP
         </h1>
         <p className="mt-6 text-base md:text-lg text-white/85 max-w-2xl leading-relaxed">
-          A celebração da inovação técnica e excelência acadêmica. Conheça as soluções 
+          A celebração da inovação técnica e excelência acadêmica. Conheça as soluções
           desenvolvidas por nossos alunos para os desafios reais da indústria 4.0.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">

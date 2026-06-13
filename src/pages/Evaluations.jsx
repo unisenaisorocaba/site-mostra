@@ -383,7 +383,7 @@ export default function Evaluations() {
               <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
               <label className="text-sm text-red-800 leading-relaxed cursor-pointer" onClick={() => setDeclared(!declared)}>
                 Declaro que realizei a avaliação de forma imparcial, seguindo os critérios estabelecidos
-                no regulamento da I Mostra de Projetos Integradores UniSENAI SP.
+                no regulamento da I Mostra de Projetos Integradores UniSENAI SP - Campus Sorocaba.
               </label>
             </div>
 

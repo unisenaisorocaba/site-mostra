@@ -9,13 +9,13 @@ export default function AboutSection() {
             O Projeto Integrador (PI)
           </h2>
           <p className="text-base md:text-lg text-muted-foreground mb-4 leading-relaxed">
-            O Projeto Integrador é o pilar prático da formação na UniSENAI SP. Mais do que um trabalho 
-            acadêmico, é uma imersão técnica onde estudantes aplicam conhecimentos multidisciplinares 
+            O Projeto Integrador é o pilar prático da formação na UniSENAI SP - Campus Sorocaba. Mais do que um trabalho
+            acadêmico, é uma imersão técnica onde estudantes aplicam conhecimentos multidisciplinares
             para solucionar problemas críticos da indústria local.
           </p>
-          <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-            Desde a prototipagem rápida até a análise de viabilidade econômica, o PI prepara o futuro 
-            profissional para o dinamismo do mercado global, unindo teoria e prática em laboratórios 
+          <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+            Desde a prototipagem rápida até a análise de viabilidade econômica, o PI prepara o futuro
+            profissional para o dinamismo do mercado global, unindo teoria e prática em laboratórios
             de última geração.
           </p>
         </div>

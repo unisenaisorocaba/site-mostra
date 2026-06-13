@@ -2,6 +2,7 @@ import React from "react";
 import HeroSection from "@/components/home/HeroSection";
 import StatsBar from "@/components/home/StatsBar";
 import AboutSection from "@/components/home/AboutSection";
+import AgendaSection from "@/components/home/AgendaSection";
 import CampusSection from "@/components/home/CampusSection";
 import FeaturedProjects from "@/components/home/FeaturedProjects";
 
@@ -11,6 +12,7 @@ export default function Home() {
       <HeroSection />
       <StatsBar />
       <AboutSection />
+      <AgendaSection />
       <FeaturedProjects />
       <CampusSection />
     </div>

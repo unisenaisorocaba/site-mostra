@@ -34,7 +34,7 @@ export default function Projects() {
     <div className="max-w-7xl mx-auto px-6 py-10 md:py-16">
       <div className="mb-10">
         <h1 className="text-3xl md:text-4xl font-bold font-heading uppercase mb-2">Galeria de Projetos</h1>
-        <p className="text-muted-foreground">Explore os projetos integradores desenvolvidos pelos alunos do UniSENAI SP.</p>
+        <p className="text-muted-foreground">Explore os projetos integradores desenvolvidos pelos alunos do UniSENAI SP - Campus Sorocaba.</p>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
