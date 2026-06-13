@@ -481,7 +481,7 @@ export default function MyProjects() {
                       )}
                       {project.thumbnail_url && (
                         <a href={project.thumbnail_url} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold uppercase text-green-600 hover:underline">
-                          ✓ Thumbnail
+                          ✓ Imagem de Capa
                         </a>
                       )}
                       {project.github_url && (
@@ -521,17 +521,25 @@ export default function MyProjects() {
                     )}
                   </div>
                 </div>
-                {(!isStudent || project.status === "rascunho") && (
-                  <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
-                    <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
-                    <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
-                    <UploadBtn label="Thumbnail" field="thumbnail_url" accept="image/*" projectId={project.id} />
-                    {project.presentation_type === "oral" && (
-                      <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
-                    )}
-                  </div>
-                )}
+                {/* Upload Section - Allow submitted projects to only upload/change Imagem de Capa */}
+                {(() => {
+                  const showAllUploads = !isStudent || project.status === "rascunho";
+                  return (
+                    <div className="px-6 pb-5 flex gap-3 flex-wrap border-t border-muted pt-4">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground self-center mr-2">Upload:</span>
+                      {showAllUploads && (
+                        <>
+                          <UploadBtn label="Banner*" field="banner_url" accept="image/*,.pdf" projectId={project.id} />
+                          <UploadBtn label="Artigo (PDF)" field="article_url" accept=".pdf" projectId={project.id} />
+                        </>
+                      )}
+                      <UploadBtn label="Imagem de Capa" field="thumbnail_url" accept="image/*" projectId={project.id} />
+                      {showAllUploads && project.presentation_type === "oral" && (
+                        <UploadBtn label="Slides" field="slides_url" accept=".pdf,.ppt,.pptx" projectId={project.id} />
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
