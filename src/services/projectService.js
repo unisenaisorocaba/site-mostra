@@ -69,26 +69,23 @@ const ProjectService = {
     return res.data;
   },
   uploadFile: async (projectId, field, file) => {
-    const toBase64 = (f) => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(f);
-      reader.onload = () => {
-        const base64String = reader.result.split(',')[1];
-        resolve(base64String);
-      };
-      reader.onerror = (error) => reject(error);
-    });
-
-    const fileData = await toBase64(file);
-
-    const res = await api.post(`/projects/${projectId}/upload`, {
+    // 1. Generate presigned URL and update database
+    const res = await api.post(`/projects/${projectId}/upload-url`, {
       fileName: file.name,
       contentType: file.type,
       field,
-      fileData,
+    });
+    const { uploadUrl, fileUrl } = res.data;
+
+    // 2. Upload raw file directly to S3 via PUT
+    const axios = await import("axios").then((m) => m.default);
+    await axios.put(uploadUrl, file, {
+      headers: {
+        "Content-Type": file.type,
+      },
     });
 
-    return res.data.fileUrl;
+    return fileUrl;
   },
   getPublicStats: async () => {
     const res = await api.get("/public/stats");

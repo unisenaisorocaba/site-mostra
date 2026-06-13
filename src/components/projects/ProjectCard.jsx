@@ -4,8 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { useCategories } from "@/hooks/useCategories";
 
 export default function ProjectCard({ project, featured = false }) {
-  const { getCategoryLabel, getCategoryImage } = useCategories();
-  const image = project.thumbnail_url || getCategoryImage(project.category, 600);
+  const { getCategoryLabel, getRandomImage } = useCategories();
+  const image = project.thumbnail_url || getRandomImage(project.id, 600);
   const categoryLabel = getCategoryLabel(project.category);
 
   if (featured) {

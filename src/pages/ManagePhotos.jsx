@@ -13,6 +13,7 @@ const categoryLabels = {
   apresentacoes: "Apresentações",
   premiacao: "Premiação",
   encerramento: "Encerramento",
+  organizacao: "Etapa de Organização",
   geral: "Geral",
 };
 

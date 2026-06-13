@@ -10,7 +10,7 @@ export default function StatsBar() {
 
   const stats = [
     { label: "Localização", value: "Sorocaba, SP" },
-    { label: "Projetos Expostos", value: statsData ? `${statsData.projects} Unidades` : "..." },
+    { label: "Projetos Expostos", value: statsData ? `${statsData.projects} Banners` : "..." },
     { label: "Categorias", value: statsData ? `${statsData.categories} Áreas` : "..." },
     { label: "Participantes", value: statsData ? `${statsData.students} Alunos` : "..." },
   ];

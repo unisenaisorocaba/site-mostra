@@ -7,9 +7,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProjectService, EvaluationService } from "@/services";
 import { useCategories } from "@/hooks/useCategories";
 
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  if (match && match[2].length === 11) {
+    return `https://www.youtube.com/embed/${match[2]}`;
+  }
+  return null;
+};
+
 export default function ProjectDetail() {
   const { id } = useParams();
-  const { getCategoryLabel, getCategoryImage } = useCategories();
+  const { getCategoryLabel, getRandomImage } = useCategories();
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -55,7 +65,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const image = project.thumbnail_url || getCategoryImage(project.category);
+  const image = project.thumbnail_url || getRandomImage(project.id);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -198,49 +208,73 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        {/* Gallery / Banner */}
-        {(project.banner_url || project.thumbnail_url) && (
+        {/* Pitch Video */}
+        {getYouTubeEmbedUrl(project.pitch_youtube_url) && (
           <div className="lg:col-span-12 bg-white border border-border p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold font-heading">Material do Projeto</h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold font-heading">Vídeo de Apresentação (Pitch)</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {project.thumbnail_url && (
-                <div className="relative group overflow-hidden aspect-video bg-muted">
-                  <img
-                    src={project.thumbnail_url}
-                    alt="Thumbnail"
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-white text-[10px] font-bold uppercase tracking-widest">IMAGEM DO PROJETO</p>
-                  </div>
-                </div>
-              )}
-              {project.banner_url && (
-                <div className="relative group overflow-hidden aspect-video bg-muted">
-                  <img
-                    src={project.banner_url}
-                    alt="Banner"
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <p className="text-white text-[10px] font-bold uppercase tracking-widest">BANNER DO PROJETO</p>
-                  </div>
-                </div>
-              )}
+            <div className="relative w-full aspect-video border border-border max-w-4xl mx-auto">
+              <iframe
+                src={getYouTubeEmbedUrl(project.pitch_youtube_url)}
+                title="Pitch do Projeto"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="absolute top-0 left-0 w-full h-full"
+              ></iframe>
             </div>
-            {project.banner_url && (
-              <div className="mt-6">
-                <a href={project.banner_url} target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
-                    <Download className="w-4 h-4" /> Baixar Banner
-                  </Button>
-                </a>
-              </div>
-            )}
           </div>
         )}
+
+        {/* Gallery / Banner */}
+        <div className="lg:col-span-12 bg-white border border-border p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-bold font-heading">Imagem e Materiais do Projeto</h3>
+          </div>
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="relative group overflow-hidden aspect-video bg-muted border border-border">
+              <img
+                src={image}
+                alt={project.title}
+                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+              />
+              <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <p className="text-white text-[10px] font-bold uppercase tracking-widest text-center">IMAGEM DO PROJETO</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3 justify-center border-t border-muted pt-6">
+            {project.banner_url && (
+              <a href={project.banner_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
+                  <Download className="w-4 h-4" /> Baixar Banner
+                </Button>
+              </a>
+            )}
+            {project.slides_url && (
+              <a href={project.slides_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
+                  Ver Slides
+                </Button>
+              </a>
+            )}
+            {project.article_url && (
+              <a href={project.article_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
+                  Ler Artigo
+                </Button>
+              </a>
+            )}
+            {project.github_url && (
+              <a href={project.github_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider gap-2 border-2 border-primary text-primary hover:bg-primary hover:text-white">
+                  Repositório GitHub
+                </Button>
+              </a>
+            )}
+          </div>
+        </div>
 
         {/* Info strip */}
         <div className="lg:col-span-12 bg-secondary/10 border border-border p-8">
