@@ -99,6 +99,10 @@ const ProjectService = {
     const res = await api.put(`/projects/bulk-eval-settings`, data);
     return res.data;
   },
+  bulkPublishGrades: async (publish = true) => {
+    const res = await api.put("/projects/bulk-publish-grades", { publish });
+    return res.data;
+  },
 };
 
 export default ProjectService;

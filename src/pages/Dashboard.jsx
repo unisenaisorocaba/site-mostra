@@ -1,9 +1,10 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { FolderOpen, ArrowRight } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FolderOpen, ArrowRight, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ProjectService, EvaluationService } from "@/services";
+import { ProjectService, EvaluationService, UserService } from "@/services";
+import { useToast } from "@/components/ui/use-toast";
 
 const statusConfig = {
   aprovado: { label: "APROVADO", cls: "bg-green-100 text-green-700" },
@@ -13,6 +14,16 @@ const statusConfig = {
 };
 
 export default function Dashboard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => UserService.me(),
+  });
+
+  const isTeacherOrAdmin = user?.role?.toUpperCase() === "TEACHER" || user?.role?.toUpperCase() === "ADMIN" || user?.role?.toUpperCase() === "PROFESSOR";
+
   const { data: myProjects = [] } = useQuery({
     queryKey: ["my-projects"],
     queryFn: () => ProjectService.listMine(),
@@ -34,6 +45,21 @@ export default function Dashboard() {
     : "—";
 
   const pendingCount = Math.max(0, projectsForEval.length - evaluations.length);
+
+  const publishAllGrades = useMutation({
+    mutationFn: () => ProjectService.bulkPublishGrades(true),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["my-projects"] });
+      toast({ title: res.message || "Notas publicadas com sucesso!" });
+    },
+    onError: (err) => {
+      toast({
+        title: "Erro ao publicar notas",
+        description: err.response?.data?.error || err.message,
+        variant: "destructive"
+      });
+    }
+  });
 
   return (
     <div>
@@ -69,13 +95,31 @@ export default function Dashboard() {
       </div>
 
       <div className="bg-white border border-border">
-        <div className="bg-muted/50 border-b border-border px-6 py-4 flex justify-between items-center">
+        <div className="bg-muted/50 border-b border-border px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <span className="text-[10px] font-bold uppercase tracking-widest">Lista de Projetos Cadastrados</span>
-          <Link to="/dashboard/projetos">
-            <Button variant="ghost" size="sm" className="text-xs uppercase font-bold tracking-wide text-primary gap-1">
-              Ver todos <ArrowRight className="w-3 h-3" />
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {isTeacherOrAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs uppercase font-bold tracking-wide gap-1.5 border-dashed rounded-none h-8 bg-white border-2 hover:bg-muted"
+                onClick={() => {
+                  if (confirm("Deseja publicar publicamente as notas de todos os seus projetos orientados de uma única vez?")) {
+                    publishAllGrades.mutate();
+                  }
+                }}
+                disabled={publishAllGrades.isPending || myProjects.length === 0}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                {publishAllGrades.isPending ? "Publicando..." : "Publicar Todas as Notas"}
+              </Button>
+            )}
+            <Link to="/dashboard/avaliacoes">
+              <Button variant="ghost" size="sm" className="text-xs uppercase font-bold tracking-wide text-primary gap-1 h-8 rounded-none">
+                Avaliar Projetos <ArrowRight className="w-3 h-3" />
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {myProjects.length === 0 ? (
