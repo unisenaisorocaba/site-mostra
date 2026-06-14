@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Users, MapPin, BookOpen, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProjectService, EvaluationService } from "@/services";
+import { ProjectService } from "@/services";
 import { useCategories } from "@/hooks/useCategories";
 
 const getYouTubeEmbedUrl = (url) => {
@@ -28,15 +28,7 @@ export default function ProjectDetail() {
 
   const project = projects;
 
-  const calculateFinalGrade = (p) => {
-    if (!p || !p.evaluations || p.evaluations.length === 0) return "—";
-    const averages = p.evaluations
-      .map((e) => parseFloat(EvaluationService.average(e)))
-      .filter((v) => !isNaN(v));
-    if (averages.length === 0) return "—";
-    const sum = averages.reduce((a, b) => a + b, 0);
-    return (sum / averages.length).toFixed(1);
-  };
+
 
   if (isLoading) {
     return (
@@ -96,8 +88,18 @@ export default function ProjectDetail() {
             )}
             {project.show_grade_publicly && (
               <div className="mt-4 flex items-center gap-2 bg-primary/10 border border-primary/20 px-4 py-2 w-fit">
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">Nota Final:</span>
-                <span className="text-lg font-bold text-primary">{calculateFinalGrade(project)}</span>
+                {project.eval_option === 1 ? (
+                  <>
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Nota:</span>
+                    <span className="text-lg font-bold text-primary">{project.grade_work}</span>
+                    <span className="text-xs text-primary/70 ml-2 font-medium">(Premiação: {project.grade_award})</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Nota Final:</span>
+                    <span className="text-lg font-bold text-primary">{project.grade_work}</span>
+                  </>
+                )}
               </div>
             )}
           </div>

@@ -56,14 +56,14 @@ export default function MyProjects() {
   const isStudent = user?.role?.toUpperCase() === "STUDENT";
   const isTeacherOrAdmin = user?.role?.toUpperCase() === "TEACHER" || user?.role?.toUpperCase() === "ADMIN";
 
-  const calculateFinalGrade = (project) => {
-    if (!project.evaluations || project.evaluations.length === 0) return "—";
-    const averages = project.evaluations
-      .map((e) => parseFloat(EvaluationService.average(e)))
-      .filter((v) => !isNaN(v));
-    if (averages.length === 0) return "—";
-    const sum = averages.reduce((a, b) => a + b, 0);
-    return (sum / averages.length).toFixed(1);
+  const getProjectGradesText = (project) => {
+    if (project.grade_work !== undefined && project.grade_award !== undefined) {
+      if (project.eval_option === 1) {
+        return `Nota (Trabalho): ${project.grade_work} | Nota (Premiação): ${project.grade_award}`;
+      }
+      return `Média: ${project.grade_work}`;
+    }
+    return "—";
   };
 
   const { data: teachers = [] } = useQuery({
@@ -444,7 +444,7 @@ export default function MyProjects() {
                       {isTeacherOrAdmin && (
                         <div className="mt-2.5 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-fit">
                           <span className="text-xs font-bold text-foreground">
-                            Média: {calculateFinalGrade(project)}
+                            {getProjectGradesText(project)}
                           </span>
                           <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider cursor-pointer">
                             <input

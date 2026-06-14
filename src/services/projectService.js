@@ -91,6 +91,14 @@ const ProjectService = {
     const res = await api.get("/public/stats");
     return res.data;
   },
+  updateEvalSettings: async (id, data) => {
+    const res = await api.put(`/projects/${id}/eval-settings`, data);
+    return res.data;
+  },
+  bulkUpdateEvalSettings: async (data) => {
+    const res = await api.put(`/projects/bulk-eval-settings`, data);
+    return res.data;
+  },
 };
 
 export default ProjectService;
