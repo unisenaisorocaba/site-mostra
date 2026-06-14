@@ -86,32 +86,48 @@ export default function Dashboard() {
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-border">
-            {myProjects.slice(0, 5).map((project) => {
-              const st = statusConfig[project.status] || statusConfig.rascunho;
-              return (
-                <div key={project.id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-muted border border-border flex items-center justify-center flex-shrink-0">
-                      <FolderOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-bold text-sm sm:text-base">{project.title}</h3>
-                        <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-widest ${st.cls}`}>{st.label}</span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground">{project.team_name}</p>
-                    </div>
-                  </div>
-                  <Link to="/dashboard/projetos" className="w-full sm:w-auto">
-                    <Button size="sm" variant={project.status === "rascunho" ? "default" : "outline"}
-                      className={`rounded-none text-xs uppercase font-bold w-full sm:w-auto ${project.status === "rascunho" ? "bg-primary text-primary-foreground" : ""}`}>
-                      {project.status === "rascunho" ? "Submeter" : "Ver Detalhes"}
-                    </Button>
-                  </Link>
-                </div>
-              );
-            })}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-muted/30 text-[10px] font-bold uppercase tracking-widest border-b border-border text-muted-foreground">
+                  <th className="px-6 py-4">#ID</th>
+                  <th className="px-6 py-4">Nome do Projeto</th>
+                  <th className="px-6 py-4">Orientador</th>
+                  <th className="px-6 py-4">Integrantes</th>
+                  <th className="px-6 py-4 text-center">Nota Projeto</th>
+                  <th className="px-6 py-4 text-center">Nota Award</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border text-xs">
+                {myProjects.map((project) => (
+                  <tr key={project.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 font-mono text-muted-foreground">
+                      {project.project_number ? `#${project.project_number}` : "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link to={`/projetos/${project.id}`} className="font-bold text-foreground hover:text-primary hover:underline transition-colors block">
+                        {project.title}
+                      </Link>
+                      <span className="text-[10px] text-muted-foreground font-mono">{project.team_name}</span>
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {project.advisor || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground max-w-xs truncate" title={Array.isArray(project.members) ? project.members.map((m) => m.name).join(", ") : ""}>
+                      {Array.isArray(project.members)
+                        ? project.members.map((m) => m.name || m.email.split("@")[0]).join(", ")
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold">
+                      {project.grade_work !== undefined ? project.grade_work : "—"}
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold">
+                      {project.grade_award !== undefined ? project.grade_award : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
