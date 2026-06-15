@@ -70,7 +70,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
           <Link to="/dashboard/projetos" className="flex-1 sm:flex-initial">
-            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2 w-full">Meus Projetos</Button>
+            <Button variant="outline" className="rounded-none text-xs uppercase font-bold tracking-wider border-2 w-full">Projetos</Button>
           </Link>
           <Link to="/dashboard/avaliacoes" className="flex-1 sm:flex-initial">
             <Button className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider w-full">Nova Avaliação</Button>
@@ -143,7 +143,7 @@ export default function Dashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-xs">
-                {myProjects.map((project) => (
+                {myProjects.sort((a, b) => a.id - b.id).map((project) => (
                   <tr key={project.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4 font-mono text-muted-foreground">
                       {project.project_number ? `#${project.project_number}` : "—"}
