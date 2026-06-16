@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService } from "@/services";
+import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService, PhotoService } from "@/services";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
@@ -34,6 +34,8 @@ export default function Evaluations() {
   const [bannerScores, setBannerScores] = useState({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
   const [comments, setComments] = useState("");
   const [declared, setDeclared] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -123,10 +125,11 @@ export default function Evaluations() {
       setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
       setComments("");
       setDeclared(false);
+      setPhotoFile(null);
     },
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedProjectId || !declared) return;
     if (isTeacher) {
       if (allSelectedCriteria.length === 0) {
@@ -140,6 +143,28 @@ export default function Evaluations() {
       }));
       createEval.mutate({ project_id: selectedProjectId, criteria_scores: criteriaScores, comments, evaluation_type: "professor" });
     } else {
+      const isFirstEvaluation = myEvaluations.length === 0;
+      if (isFirstEvaluation && !photoFile) {
+        toast({ title: "Foto Obrigatória", description: "Na sua primeira avaliação, é necessário enviar uma foto de comprovação.", variant: "destructive" });
+        return;
+      }
+
+      if (photoFile) {
+        setUploadingPhoto(true);
+        try {
+          await PhotoService.upload({
+            file: photoFile,
+            caption: "Comprovação de Presença - Avaliação",
+            category: "apresentacoes"
+          });
+        } catch (err) {
+          toast({ title: "Erro ao enviar foto", description: err.message, variant: "destructive" });
+          setUploadingPhoto(false);
+          return;
+        }
+        setUploadingPhoto(false);
+      }
+
       createEval.mutate({ project_id: selectedProjectId, ...bannerScores, comments, evaluation_type: "aluno" });
     }
   };
@@ -149,7 +174,9 @@ export default function Evaluations() {
     if (!p) return id;
     return p.project_number ? `#${p.project_number} - ${p.title}` : p.title;
   };
-  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
+  
+  const isFirstEvaluation = myEvaluations.length === 0;
+  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
 
   return (
@@ -166,9 +193,9 @@ export default function Evaluations() {
             {isTeacher ? "Avaliação com critérios personalizados · Professor" : "Avaliação de Banner · Aluno"}
           </p>
         </div>
-        <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending}
+        <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
           className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">
-          Finalizar Avaliação
+          {uploadingPhoto ? "Enviando Foto..." : "Finalizar Avaliação"}
         </Button>
       </div>
 
@@ -402,6 +429,28 @@ export default function Evaluations() {
                 className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." />
             </section>
 
+            {!isTeacher && (
+              <section className="pt-6 border-t border-muted">
+                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Comprovação de Presença</Label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-muted/20 border border-border">
+                  <div className="flex-1">
+                    <p className="text-sm font-bold mb-1">Selfie / Foto na Escola</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isFirstEvaluation 
+                        ? "Na sua primeira avaliação, é obrigatório anexar uma foto comprovando sua presença."
+                        : "Você já enviou sua foto de comprovação hoje. O envio em novas avaliações é opcional."}
+                    </p>
+                  </div>
+                  <label className="cursor-pointer shrink-0 w-full sm:w-auto">
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => setPhotoFile(e.target.files[0])} />
+                    <span className={`flex justify-center px-4 py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${photoFile ? 'bg-primary/10 border-primary text-primary' : 'bg-white border-border hover:border-primary text-muted-foreground hover:text-primary'}`}>
+                      {photoFile ? "✓ Foto Selecionada" : "Tirar Foto"}
+                    </span>
+                  </label>
+                </div>
+              </section>
+            )}
+
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100">
               <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
               <label className="text-sm text-red-800 leading-relaxed cursor-pointer" onClick={() => setDeclared(!declared)}>
@@ -410,9 +459,9 @@ export default function Evaluations() {
               </label>
             </div>
 
-            <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending}
+            <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
               className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider py-4 h-auto">
-              Finalizar Avaliação
+              {uploadingPhoto ? "Enviando Foto..." : "Finalizar Avaliação"}
             </Button>
           </div>
         </div>
