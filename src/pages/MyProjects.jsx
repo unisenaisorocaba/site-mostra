@@ -506,16 +506,14 @@ export default function MyProjects() {
           <h1 className="text-3xl md:text-4xl font-bold font-heading">Projetos</h1>
           <p className="text-muted-foreground mt-1">Painel de Submissão · Ciclo de Inovação 2026</p>
         </div>
-        <Button onClick={() => { setEditing(null); setForm(emptyProject); setKeywordsText(""); setFormStep(0); setShowForm(true); }} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-2">
-          <Plus className="w-4 h-4" /> Novo Projeto
-        </Button>
+        {/* Botão de Novo Projeto removido para interromper novas submissões */}
       </div>
 
       {isLoading ? <p className="text-muted-foreground">Carregando...</p> : projects.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border">
           <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">Você ainda não cadastrou nenhum projeto.</p>
-          <Button onClick={() => setShowForm(true)} className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold gap-2"><Plus className="w-4 h-4" /> Criar Primeiro Projeto</Button>
+          {/* Botão de Criar Primeiro Projeto removido para interromper novas submissões */}
         </div>
       ) : (
         <div className="space-y-4">
