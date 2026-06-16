@@ -61,7 +61,21 @@ const ProjectGradesDetail = ({ project }) => {
   return (
     <div className="mt-4 p-4 border border-border bg-muted/20 w-full">
       <div className="mb-4 bg-white p-3 border border-border">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Composição da Nota Final</p>
+        <div className="flex justify-between items-start mb-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Composição da Nota Final</p>
+          {project.grade_work && project.grade_work !== "—" && (
+            <div className="text-right">
+              {project.eval_option === 1 ? (
+                <>
+                  <span className="block text-[10px] font-bold text-muted-foreground">NOTA DO TRABALHO: {project.grade_work}</span>
+                  <span className="bg-primary text-primary-foreground font-bold px-3 py-1 rounded-sm text-sm mt-1 inline-block">NOTA DA MOSTRA: {project.grade_award}</span>
+                </>
+              ) : (
+                <span className="bg-primary text-primary-foreground font-bold px-3 py-1 rounded-sm text-sm inline-block">NOTA FINAL: {project.grade_work}</span>
+              )}
+            </div>
+          )}
+        </div>
         {project.eval_option === 1 ? (
           <p className="text-xs">
             <strong className="text-primary">Opção 1:</strong> Nota do Trabalho (Peso 80%) + Média de Alunos (Peso 20%).<br/>
@@ -80,11 +94,23 @@ const ProjectGradesDetail = ({ project }) => {
       {teacherEvals.length > 0 && (
         <div className="mb-4">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Avaliações dos Docentes</p>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {teacherEvals.map(ev => (
-              <div key={ev.id} className="flex justify-between items-center bg-white border border-border px-3 py-2 text-xs">
-                <span className="font-bold">{ev.evaluator_name}</span>
-                <span className="font-bold bg-primary/10 text-primary px-2 py-0.5">Nota: {calcTeacherAverage(ev.criteria_scores)}</span>
+              <div key={ev.id} className="bg-white border border-border p-3 text-xs">
+                <div className="flex justify-between items-center mb-2 pb-2 border-b border-muted">
+                  <span className="font-bold text-[13px]">{ev.evaluator_name}</span>
+                  <span className="font-bold bg-primary/10 text-primary px-2 py-0.5">Média: {calcTeacherAverage(ev.criteria_scores)}</span>
+                </div>
+                {ev.criteria_scores && ev.criteria_scores.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    {ev.criteria_scores.map((cs, idx) => (
+                      <div key={idx} className="flex justify-between items-start gap-4">
+                        <span className="text-muted-foreground truncate" title={cs.criteria_name}>{cs.criteria_name}</span>
+                        <span className="font-bold shrink-0">{cs.score}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
