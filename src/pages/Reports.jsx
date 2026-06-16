@@ -15,7 +15,9 @@ export default function Reports() {
   const filteredData = useMemo(() => {
     return reportData.filter((row) => {
       const q = searchQuery.toLowerCase();
-      return row.name.toLowerCase().includes(q) || row.email.toLowerCase().includes(q) || row.date.includes(q);
+      return row.name.toLowerCase().includes(q) || 
+             row.email.toLowerCase().includes(q) || 
+             (row.turma && row.turma.toLowerCase().includes(q));
     });
   }, [reportData, searchQuery]);
 
@@ -59,21 +61,36 @@ export default function Reports() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-muted/30 text-[10px] font-bold uppercase tracking-widest border-b border-border text-muted-foreground">
-                  <th className="px-6 py-4">Data</th>
                   <th className="px-6 py-4">Nome do Aluno</th>
-                  <th className="px-6 py-4">E-mail</th>
-                  <th className="px-6 py-4 text-center">Projetos Avaliados</th>
+                  <th className="px-6 py-4">Turma / Curso</th>
+                  <th className="px-6 py-4 text-center">Dia 01 (16/06)</th>
+                  <th className="px-6 py-4 text-center">Dia 02 (17/06)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-xs">
                 {filteredData.map((row, idx) => (
                   <tr key={idx} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-mono">{row.date}</td>
-                    <td className="px-6 py-4 font-bold">{row.name}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{row.email}</td>
+                    <td className="px-6 py-4">
+                      <p className="font-bold">{row.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{row.email}</p>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-muted-foreground">{row.turma}</td>
                     <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
-                        {row.count}
+                      <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-bold text-[10px] sm:text-xs ${
+                        row.assignedDay1 === 0 ? "bg-muted text-muted-foreground" :
+                        row.evaluatedDay1 >= row.assignedDay1 ? "bg-green-100 text-green-700" :
+                        row.evaluatedDay1 > 0 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                      }`}>
+                        {row.evaluatedDay1} / {row.assignedDay1}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-bold text-[10px] sm:text-xs ${
+                        row.assignedDay2 === 0 ? "bg-muted text-muted-foreground" :
+                        row.evaluatedDay2 >= row.assignedDay2 ? "bg-green-100 text-green-700" :
+                        row.evaluatedDay2 > 0 ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
+                      }`}>
+                        {row.evaluatedDay2} / {row.assignedDay2}
                       </span>
                     </td>
                   </tr>
