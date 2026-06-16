@@ -15,6 +15,7 @@ import {
   ListChecks,
   Layers,
   User,
+  UserCheck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ const teacherNavItems = [
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Atribuições", path: "/dashboard/atribuicoes", icon: UserCheck },
   { label: "Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },
@@ -44,6 +46,7 @@ const adminNavItems = [
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Atribuições", path: "/dashboard/atribuicoes", icon: UserCheck },
   { label: "Critérios", path: "/dashboard/criterios", icon: ListChecks },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Visitantes", path: "/dashboard/visitantes", icon: Users },

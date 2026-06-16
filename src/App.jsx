@@ -22,6 +22,7 @@ import UserManagement from '@/pages/admin/UserManagement';
 import OralSchedule from '@/pages/admin/OralSchedule';
 import Profile from '@/pages/Profile';
 import VisitorsManagement from '@/pages/admin/VisitorsManagement';
+import Assignments from '@/pages/Assignments';
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -51,6 +52,7 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard/projetos" element={<MyProjects />} />
         <Route path="/dashboard/categorias" element={<CategoryManagement />} />
         <Route path="/dashboard/avaliacoes" element={<Evaluations />} />
+        <Route path="/dashboard/atribuicoes" element={<Assignments />} />
         <Route path="/dashboard/criterios" element={<MyCriteria />} />
         <Route path="/dashboard/fotos" element={<ManagePhotos />} />
         <Route path="/dashboard/grupos" element={<Groups />} />

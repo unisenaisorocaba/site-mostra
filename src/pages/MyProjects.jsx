@@ -409,17 +409,19 @@ export default function MyProjects() {
                     </div>
                     <div className="flex-1 min-w-0">
                       {/* Title & Badge */}
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1 flex-wrap">
                         <h3 className="font-bold text-sm sm:text-base">
                           {project.project_number && `#${project.project_number} - `}
                           {project.title}
                         </h3>
-                        <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase ${st.cls}`}>{st.label}</span>
-                        {project.presentation_type === "oral" && (
-                          <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
-                            <Mic className="w-3 h-3" /> ORAL {project.oral_approved ? "✓ APROVADO" : "- PENDENTE"}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase ${st.cls}`}>{st.label}</span>
+                          {project.presentation_type === "oral" && (
+                            <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
+                              <Mic className="w-3 h-3" /> ORAL {project.oral_approved ? "✓ APROVADO" : "- PENDENTE"}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       
                       <p className="text-xs sm:text-sm text-muted-foreground">{getCategoryLabel(project.category)} · {project.team_name}</p>
@@ -442,7 +444,7 @@ export default function MyProjects() {
 
                       {/* Grades for Teachers/Admins */}
                       {isTeacherOrAdmin && (
-                        <div className="mt-2.5 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-fit">
+                        <div className="mt-2.5 flex items-center gap-4 flex-wrap bg-muted/50 p-2 border border-border w-full sm:w-fit">
                           <span className="text-xs font-bold text-foreground">
                             {getProjectGradesText(project)}
                           </span>
@@ -508,7 +510,7 @@ export default function MyProjects() {
 
                   {/* Right Side: Action Buttons (Bottom row on mobile, top right on desktop) */}
                   {(isTeacherOrAdmin || (isStudent && project.status === "rascunho")) && (
-                    <div className="flex items-center gap-2 lg:self-start w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0 mt-2 lg:mt-0">
+                    <div className="flex flex-wrap items-center gap-2 lg:self-start w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0 mt-2 lg:mt-0">
                       {isTeacherOrAdmin && project.status !== "rascunho" && (
                         <Button
                           size="sm"

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { ProjectService, EvaluationService, CriteriaService, UserService } from "@/services";
+import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService } from "@/services";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
@@ -52,14 +52,25 @@ export default function Evaluations() {
     queryFn: () => ProjectService.listApproved(),
   });
 
-  const filteredProjects = projects.filter((p) => {
-    if (user) {
-      const isCreator = p.created_by === user.email;
-      const isMember = (p.members || []).some((m) => m.email === user.email);
-      if (isCreator || isMember) return false;
-    }
-    return true;
+  const { data: assignmentsRes } = useQuery({
+    queryKey: ["my-assignments"],
+    queryFn: () => AssignmentService.listMine(),
+    enabled: !!user && !isTeacher,
   });
+
+  const assignmentsData = assignmentsRes?.data || [];
+  const assignmentMessage = assignmentsRes?.message || "";
+
+  const filteredProjects = isTeacher 
+    ? projects.filter((p) => {
+        if (user) {
+          const isCreator = p.created_by === user.email;
+          const isMember = (p.members || []).some((m) => m.email === user.email);
+          if (isCreator || isMember) return false;
+        }
+        return true;
+      })
+    : assignmentsData.map(a => a.project).filter(Boolean);
 
   const { data: myCriteriaLists = [] } = useQuery({
     queryKey: ["my-criteria-lists", user?.email],
@@ -169,17 +180,29 @@ export default function Evaluations() {
             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Projeto a Avaliar</Label>
             <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
               <SelectTrigger className="rounded-none mb-4">
-                <SelectValue placeholder="Selecione um projeto aprovado" />
+                <SelectValue placeholder="Selecione um projeto" />
               </SelectTrigger>
               <SelectContent>
                 {filteredProjects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.project_number ? `#${p.project_number} - ` : ""}
-                    {p.title} — {p.team_name}
+                    {p.title} {p.team_name ? `— ${p.team_name}` : ""}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            {!isTeacher && assignmentMessage && filteredProjects.length === 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800 mb-4">
+                {assignmentMessage}
+              </div>
+            )}
+
+            {!isTeacher && !assignmentMessage && filteredProjects.length === 0 && (
+              <div className="bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800 mb-4">
+                Você não possui projetos atribuídos para avaliar hoje.
+              </div>
+            )}
             {selectedProjectId && (() => {
               const p = filteredProjects.find((x) => x.id === selectedProjectId);
               return p ? (

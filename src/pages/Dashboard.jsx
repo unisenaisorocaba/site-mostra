@@ -78,7 +78,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-10">
         {[
           { label: "Pendentes de Avaliação", value: pendingCount, note: "Projetos na fila", to: "/dashboard/avaliacoes", highlight: true },
           { label: "Avaliações Concluídas", value: evaluations.length, note: "Total neste semestre", to: "/dashboard/avaliacoes" },
@@ -136,8 +136,8 @@ export default function Dashboard() {
                 <tr className="bg-muted/30 text-[10px] font-bold uppercase tracking-widest border-b border-border text-muted-foreground">
                   <th className="px-6 py-4">#ID</th>
                   <th className="px-6 py-4">Nome do Projeto</th>
-                  <th className="px-6 py-4">Orientador</th>
-                  <th className="px-6 py-4">Integrantes</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Orientador</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Integrantes</th>
                   <th className="px-6 py-4 text-center">Nota Projeto</th>
                   <th className="px-6 py-4 text-center">Nota Award</th>
                 </tr>
@@ -154,10 +154,10 @@ export default function Dashboard() {
                       </Link>
                       <span className="text-[10px] text-muted-foreground font-mono">{project.team_name}</span>
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">
+                    <td className="px-6 py-4 hidden md:table-cell text-muted-foreground">
                       {project.advisor || "—"}
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground max-w-xs truncate" title={Array.isArray(project.members) ? project.members.map((m) => m.name).join(", ") : ""}>
+                    <td className="px-6 py-4 hidden md:table-cell text-muted-foreground max-w-xs truncate" title={Array.isArray(project.members) ? project.members.map((m) => m.name).join(", ") : ""}>
                       {Array.isArray(project.members)
                         ? project.members.map((m) => m.name || m.email.split("@")[0]).join(", ")
                         : "—"}

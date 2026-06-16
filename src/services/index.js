@@ -8,5 +8,6 @@ export { default as EvaluationService } from "./evaluationService";
 export { default as CriteriaService } from "./criteriaService";
 export { default as UserService } from "./userService";
 export { default as GroupService } from "./groupService";
+export { default as AssignmentService } from "./assignmentService";
 export { default as PhotoService } from "./photoService";
 export { default as CategoryService } from "./categoryService";
