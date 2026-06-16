@@ -63,15 +63,15 @@ export default function Evaluations() {
   const assignmentsData = assignmentsRes?.data || [];
   const assignmentMessage = assignmentsRes?.message || "";
 
-  const filteredProjects = isTeacher 
+  const filteredProjects = isTeacher
     ? projects.filter((p) => {
-        if (user) {
-          const isCreator = p.created_by === user.email;
-          const isMember = (p.members || []).some((m) => m.email === user.email);
-          if (isCreator || isMember) return false;
-        }
-        return true;
-      })
+      if (user) {
+        const isCreator = p.created_by === user.email;
+        const isMember = (p.members || []).some((m) => m.email === user.email);
+        if (isCreator || isMember) return false;
+      }
+      return true;
+    })
     : assignmentsData.map(a => a.project).filter(Boolean);
 
   const { data: myCriteriaLists = [] } = useQuery({
@@ -174,7 +174,7 @@ export default function Evaluations() {
     if (!p) return id;
     return p.project_number ? `#${p.project_number} - ${p.title}` : p.title;
   };
-  
+
   const isFirstEvaluation = myEvaluations.length === 0;
   const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
@@ -429,14 +429,14 @@ export default function Evaluations() {
                 className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." />
             </section>
 
-            {!isTeacher && (
+            {/* {!isTeacher && isAdmin && (
               <section className="pt-6 border-t border-muted">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Comprovação de Presença</Label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-muted/20 border border-border">
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-1">Selfie / Foto na Escola</p>
                     <p className="text-xs text-muted-foreground">
-                      {isFirstEvaluation 
+                      {isFirstEvaluation
                         ? "Na sua primeira avaliação, é obrigatório anexar uma foto comprovando sua presença."
                         : "Você já enviou sua foto de comprovação hoje. O envio em novas avaliações é opcional."}
                     </p>
@@ -449,7 +449,7 @@ export default function Evaluations() {
                   </label>
                 </div>
               </section>
-            )}
+            )} */}
 
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100">
               <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
