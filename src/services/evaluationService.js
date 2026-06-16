@@ -13,6 +13,14 @@ const EvaluationService = {
     const res = await api.post("/evaluations", data);
     return res.data;
   },
+  getProjectAverage: async (projectId) => {
+    const res = await api.get(`/evaluations/project/${projectId}/average`);
+    return res.data;
+  },
+  getStudentReport: async () => {
+    const res = await api.get("/evaluations/report");
+    return res.data;
+  },
   average: (evaluation) => {
     if (evaluation.evaluation_type === "professor" && evaluation.criteria_scores?.length > 0) {
       const sum = evaluation.criteria_scores.reduce((a, b) => a + (b.score || 0), 0);

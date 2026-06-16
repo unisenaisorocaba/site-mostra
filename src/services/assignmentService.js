@@ -1,4 +1,4 @@
-import api from "./userService"; // the userService exports the configured axios instance
+import api from "@/api/apiClient";
 
 class AssignmentService {
   static async listAll() {

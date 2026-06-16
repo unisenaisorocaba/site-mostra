@@ -33,6 +33,65 @@ const steps = [
   { num: "04", label: "Revisão" },
 ];
 
+const ProjectGradesDetail = ({ project }) => {
+  const { data: averageData, isLoading } = useQuery({
+    queryKey: ["project-average", project.id],
+    queryFn: () => EvaluationService.getProjectAverage(project.id),
+    enabled: project.status !== "rascunho"
+  });
+
+  if (project.status === "rascunho") return null;
+  if (isLoading || !averageData) return null;
+
+  if (averageData.totalEvaluations === 0) {
+    return (
+      <div className="mt-4 p-4 border border-dashed border-border bg-muted/10 w-full">
+        <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest text-center">Nenhuma avaliação recebida ainda.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4 p-4 border border-border bg-muted/20 w-full">
+      <div className="flex items-center gap-4 mb-3 border-b border-border pb-2 flex-wrap">
+        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Avaliações de Alunos: <span className="text-primary">{averageData.studentEvaluationsCount}</span>
+        </div>
+        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Média Alunos: <span className="text-primary">{averageData.studentAverage}</span>
+        </div>
+      </div>
+      
+      {averageData.studentCriteriaAverages && Object.keys(averageData.studentCriteriaAverages).length > 0 && (
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Desempenho por Critério (Avaliação de Alunos)</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {Object.entries(averageData.studentCriteriaAverages).map(([key, value]) => {
+              const labels = {
+                innovation: "Inovação",
+                technical: "Técnico",
+                presentation: "Apresentação",
+                relevance: "Relevância",
+                organization: "Organização",
+                clarity: "Clareza",
+                design: "Design",
+                objectivity: "Objetividade",
+                impact: "Impacto"
+              };
+              return (
+                <div key={key} className="flex justify-between items-center bg-white border border-border px-2 py-1.5">
+                  <span className="text-[9px] sm:text-[10px] font-bold uppercase text-muted-foreground">{labels[key] || key}</span>
+                  <span className="text-xs font-bold">{value}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function MyProjects() {
   const [showForm, setShowForm] = useState(false);
   const [formStep, setFormStep] = useState(0);
@@ -505,6 +564,9 @@ export default function MyProjects() {
                           </a>
                         )}
                       </div>
+
+                      {/* Grades Details */}
+                      {isStudent && <ProjectGradesDetail project={project} />}
                     </div>
                   </div>
 
