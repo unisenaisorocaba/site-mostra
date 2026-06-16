@@ -143,7 +143,7 @@ export default function Evaluations() {
       }));
       createEval.mutate({ project_id: selectedProjectId, criteria_scores: criteriaScores, comments, evaluation_type: "professor" });
     } else {
-      const isFirstEvaluation = myEvaluations.length === 0;
+      const isFirstEvaluation = false; //myEvaluations.length === 0;
       if (isFirstEvaluation && !photoFile) {
         toast({ title: "Foto Obrigatória", description: "Na sua primeira avaliação, é necessário enviar uma foto de comprovação.", variant: "destructive" });
         return;
