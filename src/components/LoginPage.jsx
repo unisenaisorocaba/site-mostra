@@ -168,6 +168,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
+          {/* Cadastro de novos usuários temporariamente suspenso
           <div className="mt-6 text-center">
             <button
               onClick={() => {
@@ -181,6 +182,7 @@ export default function LoginPage() {
                 : "Não tem uma conta? Cadastre-se"}
             </button>
           </div>
+          */}
         </div>
       </div>
     </div>
