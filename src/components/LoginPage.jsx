@@ -3,6 +3,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export default function LoginPage() {
@@ -68,7 +69,7 @@ export default function LoginPage() {
 
         <div className="bg-white border border-border p-8 relative shadow-sm">
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-          
+
           {error && (
             <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-xs">
               {error}
@@ -94,14 +95,14 @@ export default function LoginPage() {
 
             <div>
               <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
-                E-mail Institucional
+                E-mail
               </Label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="rounded-none"
-                placeholder="email@senaisp.edu.br"
+                placeholder="email@gmail.com"
                 required
               />
             </div>
@@ -139,14 +140,19 @@ export default function LoginPage() {
                   <Label className="text-[10px] font-bold uppercase tracking-widest block mb-1">
                     Turma / Curso
                   </Label>
-                  <Input
-                    type="text"
-                    value={className}
-                    onChange={(e) => setClassName(e.target.value)}
-                    className="rounded-none"
-                    placeholder="Ex: DDS-3A"
-                    required
-                  />
+                  <Select value={className} onValueChange={setClassName} required>
+                    <SelectTrigger className="rounded-none bg-white">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TADS1">TADS1</SelectItem>
+                      <SelectItem value="TADS3">TADS3</SelectItem>
+                      <SelectItem value="TADS3-TOY">TADS3-TOY</SelectItem>
+                      <SelectItem value="TMI1">TMI1</SelectItem>
+                      <SelectItem value="TMI3">TMI3</SelectItem>
+                      <SelectItem value="TMI5">TMI5</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             )}
