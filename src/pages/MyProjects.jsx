@@ -51,9 +51,47 @@ const ProjectGradesDetail = ({ project }) => {
     );
   }
 
+  const teacherEvals = (project.evaluations || []).filter(e => e.evaluation_type === "professor");
+
+  const calcTeacherAverage = (scores) => {
+    if (!scores || scores.length === 0) return 0;
+    return (scores.reduce((sum, s) => sum + (Number(s.score) || 0), 0) / scores.length).toFixed(1);
+  };
+
   return (
     <div className="mt-4 p-4 border border-border bg-muted/20 w-full">
-      <div className="flex items-center gap-4 mb-3 border-b border-border pb-2 flex-wrap">
+      <div className="mb-4 bg-white p-3 border border-border">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Composição da Nota Final</p>
+        {project.eval_option === 1 ? (
+          <p className="text-xs">
+            <strong className="text-primary">Opção 1:</strong> Nota do Trabalho (Peso 80%) + Média de Alunos (Peso 20%).<br/>
+            Nota Recebida no Trabalho: <strong>{project.advisor_raw_score || "—"}</strong>
+          </p>
+        ) : (
+          <p className="text-xs">
+            <strong className="text-primary">Opção 2:</strong> 
+            Orientador (Peso {project.weight_advisor || 40}), 
+            Professores (Peso {project.weight_teachers || 40}), 
+            Alunos (Peso {project.weight_students || 20}).
+          </p>
+        )}
+      </div>
+
+      {teacherEvals.length > 0 && (
+        <div className="mb-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Avaliações dos Docentes</p>
+          <div className="space-y-2">
+            {teacherEvals.map(ev => (
+              <div key={ev.id} className="flex justify-between items-center bg-white border border-border px-3 py-2 text-xs">
+                <span className="font-bold">{ev.evaluator_name}</span>
+                <span className="font-bold bg-primary/10 text-primary px-2 py-0.5">Nota: {calcTeacherAverage(ev.criteria_scores)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-4 mb-3 border-b border-border pb-2 flex-wrap mt-4">
         <div className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground">
           Avaliações de Alunos: <span className="text-primary">{averageData.studentEvaluationsCount}</span>
         </div>
