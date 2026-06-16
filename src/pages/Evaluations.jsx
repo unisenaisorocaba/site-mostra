@@ -143,11 +143,11 @@ export default function Evaluations() {
       }));
       createEval.mutate({ project_id: selectedProjectId, criteria_scores: criteriaScores, comments, evaluation_type: "professor" });
     } else {
-      const isFirstEvaluation = false; //myEvaluations.length === 0;
-      if (isFirstEvaluation && !photoFile) {
-        toast({ title: "Foto Obrigatória", description: "Na sua primeira avaliação, é necessário enviar uma foto de comprovação.", variant: "destructive" });
-        return;
-      }
+      // const isFirstEvaluation = myEvaluations.length === 0;
+      // if (isFirstEvaluation && !photoFile) {
+      //   toast({ title: "Foto Obrigatória", description: "Na sua primeira avaliação, é necessário enviar uma foto de comprovação.", variant: "destructive" });
+      //   return;
+      // }
 
       if (photoFile) {
         setUploadingPhoto(true);
@@ -176,7 +176,8 @@ export default function Evaluations() {
   };
 
   const isFirstEvaluation = myEvaluations.length === 0;
-  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
+  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
+  // const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
 
   return (
@@ -429,27 +430,28 @@ export default function Evaluations() {
                 className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." />
             </section>
 
-            {/* {!isTeacher && isAdmin && (
+            {!isTeacher && (
               <section className="pt-6 border-t border-muted">
                 <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Comprovação de Presença</Label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 bg-muted/20 border border-border">
                   <div className="flex-1">
                     <p className="text-sm font-bold mb-1">Selfie / Foto na Escola</p>
                     <p className="text-xs text-muted-foreground">
-                      {isFirstEvaluation
+                      {/* {isFirstEvaluation
                         ? "Na sua primeira avaliação, é obrigatório anexar uma foto comprovando sua presença."
-                        : "Você já enviou sua foto de comprovação hoje. O envio em novas avaliações é opcional."}
+                        : "Você já enviou sua foto de comprovação hoje. O envio em novas avaliações é opcional."} */}
+                      Suba a foto comprovação diretamente no menu de fotos.
                     </p>
                   </div>
-                  <label className="cursor-pointer shrink-0 w-full sm:w-auto">
+                  {/* <label className="cursor-pointer shrink-0 w-full sm:w-auto">
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => setPhotoFile(e.target.files[0])} />
                     <span className={`flex justify-center px-4 py-2 text-xs font-bold uppercase tracking-widest border transition-colors ${photoFile ? 'bg-primary/10 border-primary text-primary' : 'bg-white border-border hover:border-primary text-muted-foreground hover:text-primary'}`}>
                       {photoFile ? "✓ Foto Selecionada" : "Tirar Foto"}
                     </span>
-                  </label>
+                  </label> */}
                 </div>
               </section>
-            )} */}
+            )}
 
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100">
               <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
