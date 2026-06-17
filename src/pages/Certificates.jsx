@@ -63,7 +63,7 @@ export default function Certificates() {
             width: 297mm !important;
             height: 210mm !important;
             margin: 0 !important;
-            padding: 16mm !important;
+            padding: 16mm 16mm 28mm 16mm !important;
             box-sizing: border-box !important;
             border: none !important;
             background-color: white !important;
@@ -366,7 +366,7 @@ export default function Certificates() {
           {/* Certificate Container */}
           <div 
             ref={printRef}
-            className={`print-area bg-white text-slate-950 font-serif border-[12px] border-slate-900 shadow-2xl relative flex flex-col justify-between p-16 select-none print:shadow-none print:border-none print:m-0 print:p-12`}
+            className={`print-area bg-white text-slate-950 font-serif border-[12px] border-slate-900 shadow-2xl relative flex flex-col justify-between p-16 pb-24 select-none print:shadow-none print:border-none print:m-0 print:p-12`}
             style={{
               width: "297mm",
               height: "210mm",
@@ -428,16 +428,11 @@ export default function Certificates() {
             </div>
 
             {/* Content Bottom / Signatures */}
-            <div className="grid grid-cols-2 gap-8 text-center pt-8 z-10 px-16 font-sans">
-              <div className="space-y-1">
-                <div className="border-b border-slate-400 w-48 mx-auto" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Lucas Miguel Leal da Silva</p>
-                <p className="text-[9px] text-slate-500">Coordenador de Campus</p>
-              </div>
-              <div className="space-y-1">
-                <div className="border-b border-slate-400 w-48 mx-auto" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Comissão Organizadora</p>
-                <p className="text-[9px] text-slate-500">Ciclo de Inovação 2026</p>
+            <div className="text-center pt-8 pb-4 z-10 px-16 font-sans">
+              <div className="space-y-1 mx-auto max-w-xs">
+                <div className="border-b border-slate-400 w-56 mx-auto mb-2" />
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Lucas Miguel Leal da Silva</p>
+                <p className="text-[10px] text-slate-500">Coordenador de Campus</p>
               </div>
             </div>
           </div>
