@@ -78,14 +78,14 @@ const ProjectGradesDetail = ({ project }) => {
         </div>
         {project.eval_option === 1 ? (
           <p className="text-xs">
-            <strong className="text-primary">Opção 1:</strong> Nota do Trabalho (Peso 80%) + Média de Alunos (Peso 20%).<br/>
+            <strong className="text-primary">Opção 1: </strong> Nota do Trabalho (Peso 80%) + Média de Alunos (Peso 20%).<br />
             Nota Recebida no Trabalho: <strong>{project.advisor_raw_score || "—"}</strong>
           </p>
         ) : (
           <p className="text-xs">
-            <strong className="text-primary">Opção 2:</strong> 
-            Orientador (Peso {project.weight_advisor || 40}), 
-            Professores (Peso {project.weight_teachers || 40}), 
+            <strong className="text-primary">Opção 2: </strong>
+            Orientador (Peso {project.weight_advisor || 40}),
+            Professores (Peso {project.weight_teachers || 40}),
             Alunos (Peso {project.weight_students || 20}).
           </p>
         )}
@@ -125,7 +125,7 @@ const ProjectGradesDetail = ({ project }) => {
           Média Alunos: <span className="text-primary">{averageData.studentAverage}</span>
         </div>
       </div>
-      
+
       {averageData.studentCriteriaAverages && Object.keys(averageData.studentCriteriaAverages).length > 0 && (
         <div>
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Desempenho por Critério (Avaliação de Alunos)</p>
@@ -519,7 +519,7 @@ export default function MyProjects() {
       {isStudent && (
         <div className="mb-6 p-4 border border-amber-300 bg-amber-50 text-amber-950 text-xs sm:text-sm font-bold flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
-          <span>ATENÇÃO ALUNO: Você deve postar obrigatoriamente a foto/banner do seu projeto na data de hoje!</span>
+          <span>ATENÇÃO ALUNO: Você deve postar obrigatoriamente sua foto no campus na data de hoje!</span>
         </div>
       )}
 
@@ -558,7 +558,7 @@ export default function MyProjects() {
                           )}
                         </div>
                       </div>
-                      
+
                       <p className="text-xs sm:text-sm text-muted-foreground">{getCategoryLabel(project.category)} · {project.team_name}</p>
 
                       {/* Members */}
