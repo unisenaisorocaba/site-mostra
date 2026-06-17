@@ -28,7 +28,7 @@ const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
-  { label: "Certificados", path: "/dashboard/certificados", icon: Award },
+  // { label: "Certificados", path: "/dashboard/certificados", icon: Award },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
