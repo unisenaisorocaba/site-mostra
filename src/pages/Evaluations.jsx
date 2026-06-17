@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X, Pencil } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService, PhotoService } from "@/services";
+import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService, PhotoService, SettingService } from "@/services";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [
@@ -38,6 +38,26 @@ export default function Evaluations() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const settingsQuery = useQuery({
+    queryKey: ["system-settings"],
+    queryFn: () => SettingService.get(),
+  });
+
+  const evalsOpen = settingsQuery.data?.evaluations_open !== false;
+
+  const toggleMutation = useMutation({
+    mutationFn: (newValue) => SettingService.update(newValue),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["system-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["my-certificates"] });
+      queryClient.invalidateQueries({ queryKey: ["rankings"] });
+      toast({ title: "Período de avaliações atualizado com sucesso!" });
+    },
+    onError: (err) => {
+      toast({ title: "Erro ao atualizar período: " + err.message, variant: "destructive" });
+    }
+  });
 
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
   const { data: profile } = useQuery({
@@ -224,7 +244,7 @@ export default function Evaluations() {
   const buttonText = uploadingPhoto
     ? "Enviando Foto..."
     : (existingEval ? "Atualizar Avaliação" : "Finalizar Avaliação");
-  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
+  const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && evalsOpen;
   // const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
 
@@ -242,11 +262,44 @@ export default function Evaluations() {
             {isTeacher ? "Avaliação com critérios personalizados · Professor" : "Avaliação de Banner · Aluno"}
           </p>
         </div>
-        <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
+         <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto || !evalsOpen}
           className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">
           {buttonText}
         </Button>
       </div>
+
+      {/* System Settings / Lock Evaluations (Visible to admin only) */}
+      {isAdmin && (
+        <div className="bg-white border border-border p-6 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
+          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+          <div>
+            <h3 className="font-bold text-base uppercase tracking-wider mb-1">Período de Avaliações</h3>
+            <p className="text-xs text-muted-foreground">
+              Tranque ou destranque o período de avaliações e edições de projetos para todos os alunos e professores.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider ${evalsOpen ? "bg-green-100 text-green-700 border border-green-300" : "bg-red-100 text-red-700 border border-red-300"}`}>
+              {evalsOpen ? "Aberto para avaliações" : "Fechado / Encerrado"}
+            </span>
+            <Button
+              onClick={() => toggleMutation.mutate(!evalsOpen)}
+              disabled={settingsQuery.isLoading || toggleMutation.isPending}
+              className={`rounded-none text-xs uppercase font-bold tracking-wider py-2.5 px-4 ${evalsOpen ? "bg-red-600 hover:bg-red-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}`}
+            >
+              {toggleMutation.isPending ? "Processando..." : (evalsOpen ? "Encerrar Período" : "Abrir Período")}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Evaluations Closed Notice (Visible to students/teachers when evaluations are closed) */}
+      {!evalsOpen && (
+        <div className="p-4 border border-red-300 bg-red-50 text-red-950 text-xs sm:text-sm font-bold flex items-center gap-2 mb-8 animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+          <span>O período de avaliações e edições foi encerrado pelo administrador.</span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Panel */}
@@ -254,7 +307,7 @@ export default function Evaluations() {
           <div className="bg-white border border-border p-8 relative">
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
             <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-3">Projeto a Avaliar</Label>
-            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
+            <Select value={selectedProjectId} onValueChange={setSelectedProjectId} disabled={!evalsOpen}>
               <SelectTrigger className="rounded-none mb-4">
                 <SelectValue placeholder="Selecione um projeto" />
               </SelectTrigger>
@@ -409,7 +462,7 @@ export default function Evaluations() {
                         )}
                       </div>
                       {availableLists.length > 0 && (
-                        <Select value="" onValueChange={(val) => addList(val)}>
+                        <Select value="" onValueChange={(val) => addList(val)} disabled={!evalsOpen}>
                           <SelectTrigger className="rounded-none">
                             <SelectValue placeholder="+ Adicionar lista de critérios..." />
                           </SelectTrigger>
@@ -452,6 +505,7 @@ export default function Evaluations() {
                                       onChange={(e) => setDynamicScores((prev) => ({ ...prev, [key]: Number(e.target.value) }))}
                                       className="w-full h-1 bg-muted rounded-none cursor-pointer"
                                       style={{ accentColor: "hsl(var(--primary))" }}
+                                      disabled={!evalsOpen}
                                     />
                                     <div className="flex justify-between mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                                       <span>Insuficiente</span><span>Regular</span><span>Excelente</span>
@@ -482,6 +536,7 @@ export default function Evaluations() {
                       onChange={(e) => setBannerScores((prev) => ({ ...prev, [c.key]: Number(e.target.value) }))}
                       className="w-full h-1 bg-muted rounded-none cursor-pointer"
                       style={{ accentColor: "hsl(var(--primary))" }}
+                      disabled={!evalsOpen}
                     />
                     <div className="flex justify-between mt-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       <span>Insuficiente</span><span>Regular</span><span>Excelente</span>
@@ -494,7 +549,7 @@ export default function Evaluations() {
             <section className="pt-6 border-t border-muted">
               <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block mb-2">Comentários / Parecer Final</Label>
               <Textarea value={comments} onChange={(e) => setComments(e.target.value)}
-                className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." />
+                className="rounded-none h-28" placeholder="Descreva sua percepção geral sobre o projeto..." disabled={!evalsOpen} />
             </section>
 
             {!isTeacher && (
@@ -521,14 +576,14 @@ export default function Evaluations() {
             )}
 
             <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100">
-              <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} className="mt-1 accent-primary w-4 h-4" />
+              <input type="checkbox" checked={declared} onChange={(e) => setDeclared(e.target.checked)} disabled={!evalsOpen} className="mt-1 accent-primary w-4 h-4" />
               <label className="text-sm text-red-800 leading-relaxed cursor-pointer" onClick={() => setDeclared(!declared)}>
                 Declaro que realizei a avaliação de forma imparcial, seguindo os critérios estabelecidos
                 no regulamento da I Mostra de Projetos Integradores UniSENAI SP - Campus Sorocaba.
               </label>
             </div>
 
-            <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
+            <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto || !evalsOpen}
               className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider py-4 h-auto">
               {buttonText}
             </Button>

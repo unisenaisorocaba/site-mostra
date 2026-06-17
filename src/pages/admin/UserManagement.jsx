@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus, Pencil, Trash2, Users, GraduationCap, BookOpen, Search, Mail, Upload, KeyRound } from "lucide-react";
-import { UserService, SettingService } from "@/services";
+import { UserService } from "@/services";
 
 const typeConfig = {
   aluno: { label: "Aluno", cls: "bg-blue-100 text-blue-700", icon: GraduationCap },
@@ -24,23 +24,7 @@ export default function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const settingsQuery = useQuery({
-    queryKey: ["system-settings"],
-    queryFn: () => SettingService.get(),
-  });
 
-  const evalsOpen = settingsQuery.data?.evaluations_open !== false;
-
-  const toggleMutation = useMutation({
-    mutationFn: (newValue) => SettingService.update(newValue),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["system-settings"] });
-      toast({ title: "Período de avaliações atualizado com sucesso!" });
-    },
-    onError: (err) => {
-      toast({ title: "Erro ao atualizar período: " + err.message, variant: "destructive" });
-    }
-  });
 
   const [showCSVImport, setShowCSVImport] = useState(false);
   const [defaultPassword, setDefaultPassword] = useState("UniSenai2026");
@@ -270,28 +254,6 @@ export default function UserManagement() {
         ))}
       </div>
 
-      {/* System Settings / Lock Evaluations */}
-      <div className="bg-white border border-border p-6 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-        <div>
-          <h3 className="font-bold text-base uppercase tracking-wider mb-1">Período de Avaliações</h3>
-          <p className="text-xs text-muted-foreground">
-            Tranque ou destranque o período de avaliações e edições de projetos para todos os alunos e professores.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 text-xs font-bold uppercase tracking-wider ${evalsOpen ? "bg-green-100 text-green-700 border border-green-300" : "bg-red-100 text-red-700 border border-red-300"}`}>
-            {evalsOpen ? "Aberto para avaliações" : "Fechado / Encerrado"}
-          </span>
-          <Button
-            onClick={() => toggleMutation.mutate(!evalsOpen)}
-            disabled={settingsQuery.isLoading || toggleMutation.isPending}
-            className={`rounded-none text-xs uppercase font-bold tracking-wider py-2.5 px-4 ${evalsOpen ? "bg-red-600 hover:bg-red-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}`}
-          >
-            {toggleMutation.isPending ? "Processando..." : (evalsOpen ? "Encerrar Período" : "Abrir Período")}
-          </Button>
-        </div>
-      </div>
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

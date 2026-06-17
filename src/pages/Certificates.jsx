@@ -95,6 +95,14 @@ export default function Certificates() {
         </div>
       </div>
 
+      {/* Warning if evaluations are still open */}
+      {rankings?.evaluationsOpen && (
+        <div className="p-4 border border-amber-300 bg-amber-50 text-amber-950 text-xs sm:text-sm font-bold flex items-center gap-2 print:hidden animate-pulse">
+          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+          <span>O período de avaliações está aberto. Os certificados estarão disponíveis para emissão e impressão assim que o período for encerrado pelo administrador.</span>
+        </div>
+      )}
+
       {/* Tabs (Hidden on print) */}
       <div className="flex border-b border-border print:hidden">
         <button
@@ -254,6 +262,8 @@ export default function Certificates() {
                                     score: p.score
                                   }
                                 })}
+                                disabled={rankings.evaluationsOpen}
+                                title={rankings.evaluationsOpen ? "Disponível apenas após o encerramento do período de avaliações" : ""}
                                 size="sm"
                                 variant="outline"
                                 className="rounded-none text-xs uppercase font-bold gap-1.5 border-2 hover:bg-primary hover:text-primary-foreground"
@@ -323,6 +333,8 @@ export default function Certificates() {
                                             score: p.score
                                           }
                                         })}
+                                        disabled={rankings.evaluationsOpen}
+                                        title={rankings.evaluationsOpen ? "Disponível apenas após o encerramento do período de avaliações" : ""}
                                         size="sm"
                                         variant="outline"
                                         className="rounded-none text-xs uppercase font-bold gap-1.5 border-2 hover:bg-primary hover:text-primary-foreground"
