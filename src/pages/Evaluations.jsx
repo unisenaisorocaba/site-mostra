@@ -90,11 +90,49 @@ export default function Evaluations() {
     (list.criteria || []).map((c, i) => ({ ...c, _key: `${list.id}__${i}`, _listName: list.name }))
   );
 
+  const existingEval = selectedProjectId ? myEvaluations.find((ev) => ev.project_id === selectedProjectId) : null;
+
   useEffect(() => {
-    setSelectedListIds([]);
-    setDynamicScores({});
-    setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
-  }, [selectedProjectId]);
+    if (!selectedProjectId) {
+      setSelectedListIds([]);
+      setDynamicScores({});
+      setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
+      setComments("");
+      return;
+    }
+
+    if (existingEval) {
+      setComments(existingEval.comments || "");
+      if (isTeacher) {
+        if (existingEval.criteria_scores && Array.isArray(existingEval.criteria_scores)) {
+          const scoresObj = {};
+          const listIds = [];
+          existingEval.criteria_scores.forEach((cs) => {
+            scoresObj[cs.criteria_id] = cs.score;
+            const parts = cs.criteria_id.split("__");
+            if (parts.length > 0 && !listIds.includes(parts[0])) {
+              listIds.push(parts[0]);
+            }
+          });
+          setSelectedListIds(listIds);
+          setDynamicScores(scoresObj);
+        }
+      } else {
+        setBannerScores({
+          criteria_organization: existingEval.criteria_organization ?? 5,
+          criteria_clarity: existingEval.criteria_clarity ?? 5,
+          criteria_design: existingEval.criteria_design ?? 5,
+          criteria_objectivity: existingEval.criteria_objectivity ?? 5,
+          criteria_impact: existingEval.criteria_impact ?? 5,
+        });
+      }
+    } else {
+      setSelectedListIds([]);
+      setDynamicScores({});
+      setBannerScores({ criteria_organization: 5, criteria_clarity: 5, criteria_design: 5, criteria_objectivity: 5, criteria_impact: 5 });
+      setComments("");
+    }
+  }, [selectedProjectId, myEvaluations, isTeacher]);
 
   const addList = (listId) => {
     if (!listId || selectedListIds.includes(listId)) return;
@@ -118,7 +156,7 @@ export default function Evaluations() {
     mutationFn: (data) => EvaluationService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-evaluations"] });
-      toast({ title: "Avaliação finalizada com sucesso!" });
+      toast({ title: existingEval ? "Avaliação atualizada com sucesso!" : "Avaliação finalizada com sucesso!" });
       setSelectedProjectId("");
       setSelectedListIds([]);
       setDynamicScores({});
@@ -127,6 +165,13 @@ export default function Evaluations() {
       setDeclared(false);
       setPhotoFile(null);
     },
+    onError: (err) => {
+      toast({
+        title: "Erro ao salvar avaliação",
+        description: err.response?.data?.error || err.message,
+        variant: "destructive"
+      });
+    }
   });
 
   const handleSubmit = async () => {
@@ -176,6 +221,9 @@ export default function Evaluations() {
   };
 
   const isFirstEvaluation = myEvaluations.length === 0;
+  const buttonText = uploadingPhoto
+    ? "Enviando Foto..."
+    : (existingEval ? "Atualizar Avaliação" : "Finalizar Avaliação");
   const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true);
   // const canSubmit = selectedProjectId && declared && (isTeacher ? allSelectedCriteria.length > 0 : true) && (!isFirstEvaluation || photoFile || isTeacher);
   const availableLists = myCriteriaLists.filter((l) => !selectedListIds.includes(l.id) && (l.criteria || []).length > 0);
@@ -196,7 +244,7 @@ export default function Evaluations() {
         </div>
         <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
           className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider">
-          {uploadingPhoto ? "Enviando Foto..." : "Finalizar Avaliação"}
+          {buttonText}
         </Button>
       </div>
 
@@ -463,7 +511,7 @@ export default function Evaluations() {
 
             <Button onClick={handleSubmit} disabled={!canSubmit || createEval.isPending || uploadingPhoto}
               className="w-full bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold tracking-wider py-4 h-auto">
-              {uploadingPhoto ? "Enviando Foto..." : "Finalizar Avaliação"}
+              {buttonText}
             </Button>
           </div>
         </div>

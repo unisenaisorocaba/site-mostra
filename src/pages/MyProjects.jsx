@@ -265,10 +265,17 @@ export default function MyProjects() {
   };
 
   const submitProject = async (project) => {
-    if (!project.banner_url) { toast({ title: "Banner obrigatório antes de submeter!", variant: "destructive" }); return; }
     await ProjectService.submit(project.id);
     queryClient.invalidateQueries({ queryKey: ["my-projects"] });
-    toast({ title: "Projeto submetido para avaliação!" });
+    if (!project.banner_url) {
+      toast({
+        title: "Projeto submetido com aviso",
+        description: "ATENÇÃO: Você deve postar obrigatoriamente a foto/banner do seu projeto na data de hoje!",
+        variant: "destructive"
+      });
+    } else {
+      toast({ title: "Projeto submetido para avaliação!" });
+    }
   };
 
   const addMember = () => setForm(prev => ({ ...prev, members: [...prev.members, { name: "", email: "" }] }));
@@ -509,6 +516,13 @@ export default function MyProjects() {
         {/* Botão de Novo Projeto removido para interromper novas submissões */}
       </div>
 
+      {isStudent && (
+        <div className="mb-6 p-4 border border-amber-300 bg-amber-50 text-amber-950 text-xs sm:text-sm font-bold flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 animate-pulse" />
+          <span>ATENÇÃO ALUNO: Você deve postar obrigatoriamente a foto/banner do seu projeto na data de hoje!</span>
+        </div>
+      )}
+
       {isLoading ? <p className="text-muted-foreground">Carregando...</p> : projects.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border">
           <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -597,7 +611,7 @@ export default function MyProjects() {
                           </a>
                         ) : (
                           <span className="text-[10px] font-bold uppercase text-red-500">
-                            ✗ Banner (obrigatório)
+                            ✗ Banner (Obrigatório postar hoje)
                           </span>
                         )}
                         {project.article_url && (

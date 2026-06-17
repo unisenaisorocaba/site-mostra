@@ -1,8 +1,8 @@
 import api from "@/api/apiClient";
 
 const PhotoService = {
-  listAll: async () => {
-    const res = await api.get("/photos");
+  listAll: async (params) => {
+    const res = await api.get("/photos", { params });
     return res.data;
   },
   listMine: async () => {

@@ -16,13 +16,21 @@ const categoryLabels = {
 export default function PublicPhotos() {
   const [filter, setFilter] = useState("all");
   const [lightbox, setLightbox] = useState(null);
+  const [page, setPage] = useState(1);
+  const limit = 12;
 
-  const { data: photos = [], isLoading } = useQuery({
-    queryKey: ["photos-public"],
-    queryFn: () => PhotoService.listAll(),
+  const { data: responseData, isLoading } = useQuery({
+    queryKey: ["photos-public", page, filter],
+    queryFn: () => PhotoService.listAll({ page, limit, category: filter }),
   });
 
-  const filtered = filter === "all" ? photos : photos.filter((p) => p.category === filter);
+  const photos = responseData?.data || [];
+  const meta = responseData?.meta || { totalPages: 1, total: 0 };
+
+  const handleFilterChange = (catKey) => {
+    setFilter(catKey);
+    setPage(1);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 md:py-16">
@@ -33,7 +41,7 @@ export default function PublicPhotos() {
 
       <div className="flex flex-wrap gap-2 mb-8">
         {[{ key: "all", label: "Todas" }, ...Object.entries(categoryLabels).map(([k, v]) => ({ key: k, label: v }))].map((cat) => (
-          <button key={cat.key} onClick={() => setFilter(cat.key)}
+          <button key={cat.key} onClick={() => handleFilterChange(cat.key)}
             className={`px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors ${filter === cat.key ? "bg-primary text-primary-foreground border-primary" : "bg-white text-muted-foreground border-border hover:border-primary"}`}>
             {cat.label}
           </button>
@@ -44,26 +52,50 @@ export default function PublicPhotos() {
         <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
           {Array(8).fill(0).map((_, i) => (<Skeleton key={i} className="h-48 w-full break-inside-avoid" />))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : photos.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border">
           <p className="text-muted-foreground">Nenhuma foto disponível ainda.</p>
         </div>
       ) : (
-        <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-          {filtered.map((photo) => (
-            <div key={photo.id} className="break-inside-avoid cursor-pointer group" onClick={() => setLightbox(photo)}>
-              <div className="border border-border overflow-hidden bg-white">
-                <img src={photo.photo_url} alt={photo.caption || "Foto do evento"} className="w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                <div className="p-3 space-y-1">
-                  {photo.caption && <p className="text-xs text-muted-foreground">{photo.caption}</p>}
-                  <p className="text-[10px] text-muted-foreground/80">
-                    Enviada por: <span className="font-semibold text-primary">{photo.uploader_name || "Visitante"}</span>
-                  </p>
+        <>
+          <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
+            {photos.map((photo) => (
+              <div key={photo.id} className="break-inside-avoid cursor-pointer group" onClick={() => setLightbox(photo)}>
+                <div className="border border-border overflow-hidden bg-white">
+                  <img src={photo.photo_url} alt={photo.caption || "Foto do evento"} className="w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="p-3 space-y-1">
+                    {photo.caption && <p className="text-xs text-muted-foreground">{photo.caption}</p>}
+                    <p className="text-[10px] text-muted-foreground/80">
+                      Enviada por: <span className="font-semibold text-primary">{photo.uploader_name || "Visitante"}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
+
+          {meta.totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-10">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors bg-white text-muted-foreground border-border hover:border-primary disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Anterior
+              </button>
+              <span className="text-xs font-semibold text-muted-foreground">
+                Página {page} de {meta.totalPages} ({meta.total} fotos)
+              </span>
+              <button
+                disabled={page === meta.totalPages}
+                onClick={() => setPage((p) => Math.min(p + 1, meta.totalPages))}
+                className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider border transition-colors bg-white text-muted-foreground border-border hover:border-primary disabled:opacity-50 disabled:pointer-events-none"
+              >
+                Próxima
+              </button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {lightbox && (
