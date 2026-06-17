@@ -12,3 +12,4 @@ export { default as AssignmentService } from "./assignmentService";
 export { default as PhotoService } from "./photoService";
 export { default as CategoryService } from "./categoryService";
 export { default as SettingService } from "./settingService";
+export { default as CertificateService } from "./certificateService";

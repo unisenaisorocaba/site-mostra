@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Star, ChevronRight, X } from "lucide-react";
+import { Star, ChevronRight, X, Pencil } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService, PhotoService } from "@/services";
 
@@ -268,6 +268,12 @@ export default function Evaluations() {
               </SelectContent>
             </Select>
 
+            <div className="bg-red-50 border border-red-200 p-4 text-sm text-red-800 mb-4">
+              Caso o projeto não esteja exposto, a recomendação é atribuir nota 0 em todos os critérios.
+              Caso o projeto esteja exposto, mas não haja nenhum integrante disponível para apresentar ou
+              esclarecer dúvidas, a avaliação poderá ser realizada com dedução de nota, a critério do avaliador.
+            </div>
+
             {!isTeacher && assignmentMessage && filteredProjects.length === 0 && (
               <div className="bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800 mb-4">
                 {assignmentMessage}
@@ -316,13 +322,26 @@ export default function Evaluations() {
                 {myEvaluations.map((ev) => (
                   <div key={ev.id} className="bg-white border border-border p-4 hover:border-primary transition-colors">
                     <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-bold text-sm">{getProjectTitle(ev.project_id)}</h4>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h4 className="font-bold text-sm truncate" title={getProjectTitle(ev.project_id)}>
+                          {getProjectTitle(ev.project_id)}
+                        </h4>
                         <span className="text-xs text-muted-foreground">{new Date(ev.created_date).toLocaleDateString("pt-BR")}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 bg-primary/10 px-3 py-1">
-                        <Star className="w-3.5 h-3.5 text-primary" />
-                        <span className="font-bold text-primary text-sm">{EvaluationService.average(ev)}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="w-7 h-7 hover:text-primary rounded-none border border-border"
+                          onClick={() => setSelectedProjectId(ev.project_id)}
+                          title="Editar Avaliação"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <div className="flex items-center gap-1 bg-primary/10 px-2.5 py-1">
+                          <Star className="w-3 h-3 text-primary shrink-0" />
+                          <span className="font-bold text-primary text-xs">{EvaluationService.average(ev)}</span>
+                        </div>
                       </div>
                     </div>
                     {ev.evaluation_type === "professor" && ev.criteria_scores?.length > 0 ? (

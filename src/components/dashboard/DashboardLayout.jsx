@@ -17,6 +17,7 @@ import {
   User,
   UserCheck,
   FileText,
+  Award,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,8 @@ import UserService from "@/services/userService";
 const studentNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
+  { label: "Certificados", path: "/dashboard/certificados", icon: Award },
   { label: "Perfil", path: "/dashboard/perfil", icon: User },
   { label: "Fotos", path: "/dashboard/fotos", icon: Camera },
 ];
@@ -33,6 +36,7 @@ const studentNavItems = [
 const teacherNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Certificados", path: "/dashboard/certificados", icon: Award },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Atribuições", path: "/dashboard/atribuicoes", icon: UserCheck },
@@ -46,6 +50,7 @@ const teacherNavItems = [
 const adminNavItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Projetos", path: "/dashboard/projetos", icon: FolderOpen },
+  { label: "Certificados", path: "/dashboard/certificados", icon: Award },
   { label: "Categorias", path: "/dashboard/categorias", icon: Layers },
   { label: "Avaliações", path: "/dashboard/avaliacoes", icon: ClipboardCheck },
   { label: "Atribuições", path: "/dashboard/atribuicoes", icon: UserCheck },

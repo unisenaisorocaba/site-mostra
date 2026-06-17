@@ -24,6 +24,7 @@ import Profile from '@/pages/Profile';
 import VisitorsManagement from '@/pages/admin/VisitorsManagement';
 import Assignments from '@/pages/Assignments';
 import Reports from "./pages/Reports";
+import Certificates from '@/pages/Certificates';
 
 const AuthenticatedApp = () => {
   const { isAuthenticated, isLoadingAuth } = useAuth();
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
         <Route path="/dashboard/oral" element={<OralSchedule />} />
         <Route path="/dashboard/perfil" element={<Profile />} />
         <Route path="/dashboard/visitantes" element={<VisitorsManagement />} />
+        <Route path="/dashboard/certificados" element={<Certificates />} />
       </Route>
 
       <Route path="*" element={<PageNotFound />} />
