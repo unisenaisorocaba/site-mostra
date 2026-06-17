@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Award, Printer, GraduationCap, BookOpen, Star, Trophy, ChevronRight } from "lucide-react";
+import { Award, Printer, GraduationCap, BookOpen, Star, Trophy, ChevronRight, Lock } from "lucide-react";
 import { CertificateService, UserService } from "@/services";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/use-toast";
 export default function Certificates() {
   const [activeTab, setActiveTab] = useState("my"); // "my" or "rankings"
   const [printData, setPrintData] = useState(null); // certificate details currently selected for print/view
-  const [useCustomBg, setUseCustomBg] = useState(false);
+  const [useCustomBg, setUseCustomBg] = useState(true);
   const printRef = useRef(null);
   const { toast } = useToast();
 
@@ -135,25 +135,60 @@ export default function Certificates() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {myCertificates.map((cert, index) => {
                   const isWinner = cert.type === "melhor_projeto";
+                  const isLocked = cert.eligible === false;
                   return (
-                    <div key={index} className="bg-white border border-border p-6 flex flex-col justify-between hover:shadow-md transition-all relative">
-                      {isWinner && <div className="absolute right-4 top-4 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-none flex items-center gap-1 border border-amber-300"><Trophy className="w-3 h-3" /> DESTAQUE</div>}
-                      <div>
-                        <div className="w-12 h-12 bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-                          <Award className="w-6 h-6 text-primary" />
+                    <div
+                      key={index}
+                      className={`bg-white border border-border p-6 flex flex-col justify-between transition-all relative ${
+                        isLocked ? "opacity-75 bg-slate-50/50" : "hover:shadow-md"
+                      }`}
+                    >
+                      {isWinner && (
+                        <div className="absolute right-4 top-4 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-none flex items-center gap-1 border border-amber-300">
+                          <Trophy className="w-3 h-3" /> DESTAQUE
                         </div>
-                        <h3 className="font-bold text-lg font-heading mb-1">{cert.title}</h3>
+                      )}
+                      {isLocked && (
+                        <div className="absolute right-4 top-4 bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-none flex items-center gap-1 border border-slate-300">
+                          <Lock className="w-3 h-3" /> REQUISITOS PENDENTES
+                        </div>
+                      )}
+                      <div>
+                        <div className={`w-12 h-12 flex items-center justify-center mb-4 border ${
+                          isLocked 
+                            ? "bg-slate-100 border-slate-200" 
+                            : "bg-primary/10 border-primary/20"
+                        }`}>
+                          {isLocked ? (
+                            <Lock className="w-6 h-6 text-slate-400" />
+                          ) : (
+                            <Award className="w-6 h-6 text-primary" />
+                          )}
+                        </div>
+                        <h3 className={`font-bold text-lg font-heading mb-1 ${isLocked ? "text-slate-500" : ""}`}>
+                          {cert.title}
+                        </h3>
                         <p className="text-xs text-muted-foreground mb-4">{cert.description}</p>
                       </div>
                       <div className="border-t border-muted pt-4 flex items-center justify-between">
-                        <span className="text-xs font-semibold text-muted-foreground">Destinatário: {cert.recipientName}</span>
-                        <Button
-                          onClick={() => openPrintPreview(cert)}
-                          size="sm"
-                          className="bg-primary text-primary-foreground text-xs uppercase font-bold tracking-wider rounded-none gap-1.5"
-                        >
-                          <Printer className="w-4 h-4" /> Visualizar
-                        </Button>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                          Destinatário: {cert.recipientName}
+                        </span>
+                        {!isLocked ? (
+                          <Button
+                            onClick={() => openPrintPreview(cert)}
+                            size="sm"
+                            className="bg-primary text-primary-foreground text-xs uppercase font-bold tracking-wider rounded-none gap-1.5"
+                          >
+                            <Printer className="w-4 h-4" /> Visualizar
+                          </Button>
+                        ) : (
+                          cert.details?.evalsCount !== undefined && (
+                            <span className="text-xs font-bold text-destructive">
+                              {cert.details.evalsCount} de {cert.details.evalsRequired || 4} concluídos
+                            </span>
+                          )
+                        )}
                       </div>
                     </div>
                   );
@@ -320,15 +355,6 @@ export default function Certificates() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 print:p-0 print:static print:bg-transparent overflow-y-auto">
           {/* Controls Bar (Hidden during print) */}
           <div className="absolute top-4 right-4 flex gap-2 print:hidden z-50 bg-black/80 p-2 border border-white/20">
-            <label className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white cursor-pointer mr-3">
-              <input
-                type="checkbox"
-                checked={useCustomBg}
-                onChange={(e) => setUseCustomBg(e.target.checked)}
-                className="rounded-none accent-primary border-border"
-              />
-              Fundo Personalizado (/img/certificate_bg.png)
-            </label>
             <Button onClick={handlePrint} className="bg-primary text-primary-foreground text-xs uppercase font-bold tracking-wider rounded-none gap-1">
               <Printer className="w-4 h-4" /> Imprimir
             </Button>
@@ -362,10 +388,7 @@ export default function Certificates() {
               <h4 className="text-[10px] tracking-[0.25em] font-bold text-amber-700 uppercase font-sans">
                 UniSENAI SP - CAMPUS SOROCABA
               </h4>
-              <div className="flex justify-center my-2">
-                <Trophy className="w-10 h-10 text-amber-500" />
-              </div>
-              <h2 className="text-4xl font-extrabold text-slate-900 tracking-wide uppercase">
+              <h2 className="text-6xl font-extrabold text-slate-900 tracking-wide uppercase py-4">
                 {printData.type === "melhor_projeto" ? "CERTIFICADO DE DESTAQUE" : "CERTIFICADO"}
               </h2>
               <div className="w-32 h-0.5 bg-amber-600 mx-auto" />
@@ -373,7 +396,9 @@ export default function Certificates() {
 
             {/* Content Body */}
             <div className="text-center px-12 space-y-6 z-10">
-              <p className="text-base italic text-slate-700">Concedido com honras para</p>
+              <p className="text-base italic text-slate-700">
+                {printData.type === "melhor_projeto" ? "Concedido com honras para" : "Concedido para"}
+              </p>
               <h3 className="text-3xl font-bold font-sans text-slate-950 border-b border-muted max-w-2xl mx-auto pb-1">
                 {printData.recipientName}
               </h3>
@@ -406,12 +431,12 @@ export default function Certificates() {
             <div className="grid grid-cols-2 gap-8 text-center pt-8 z-10 px-16 font-sans">
               <div className="space-y-1">
                 <div className="border-b border-slate-400 w-48 mx-auto" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Direção Acadêmica</p>
-                <p className="text-[9px] text-slate-500">UniSENAI SP Sorocaba</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Lucas Miguel Leal da Silva</p>
+                <p className="text-[9px] text-slate-500">Coordenador de Campus</p>
               </div>
               <div className="space-y-1">
                 <div className="border-b border-slate-400 w-48 mx-auto" />
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Coordenação de Projetos</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-800">Comissão Organizadora</p>
                 <p className="text-[9px] text-slate-500">Ciclo de Inovação 2026</p>
               </div>
             </div>
