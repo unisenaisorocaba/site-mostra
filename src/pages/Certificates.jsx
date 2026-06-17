@@ -13,7 +13,7 @@ export default function Certificates() {
   const { toast } = useToast();
 
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: () => UserService.me() });
-  
+
   const { data: rankings = { overallRankings: [], classRankings: {} }, isLoading: isLoadingRankings } = useQuery({
     queryKey: ["rankings"],
     queryFn: () => CertificateService.getRankings(),
@@ -99,21 +99,19 @@ export default function Certificates() {
       <div className="flex border-b border-border print:hidden">
         <button
           onClick={() => setActiveTab("my")}
-          className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
-            activeTab === "my"
+          className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === "my"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           Meus Certificados
         </button>
         <button
           onClick={() => setActiveTab("rankings")}
-          className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
-            activeTab === "rankings"
+          className={`px-6 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${activeTab === "rankings"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
-          }`}
+            }`}
         >
           Melhores Projetos (Rankings)
         </button>
@@ -139,9 +137,8 @@ export default function Certificates() {
                   return (
                     <div
                       key={index}
-                      className={`bg-white border border-border p-6 flex flex-col justify-between transition-all relative ${
-                        isLocked ? "opacity-75 bg-slate-50/50" : "hover:shadow-md"
-                      }`}
+                      className={`bg-white border border-border p-6 flex flex-col justify-between transition-all relative ${isLocked ? "opacity-75 bg-slate-50/50" : "hover:shadow-md"
+                        }`}
                     >
                       {isWinner && (
                         <div className="absolute right-4 top-4 bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-none flex items-center gap-1 border border-amber-300">
@@ -154,11 +151,10 @@ export default function Certificates() {
                         </div>
                       )}
                       <div>
-                        <div className={`w-12 h-12 flex items-center justify-center mb-4 border ${
-                          isLocked 
-                            ? "bg-slate-100 border-slate-200" 
+                        <div className={`w-12 h-12 flex items-center justify-center mb-4 border ${isLocked
+                            ? "bg-slate-100 border-slate-200"
                             : "bg-primary/10 border-primary/20"
-                        }`}>
+                          }`}>
                           {isLocked ? (
                             <Lock className="w-6 h-6 text-slate-400" />
                           ) : (
@@ -364,7 +360,7 @@ export default function Certificates() {
           </div>
 
           {/* Certificate Container */}
-          <div 
+          <div
             ref={printRef}
             className={`print-area bg-white text-slate-950 font-serif border-[12px] border-slate-900 shadow-2xl relative flex flex-col justify-between p-16 pb-24 select-none print:shadow-none print:border-none print:m-0 print:p-12`}
             style={{
@@ -402,7 +398,7 @@ export default function Certificates() {
               <h3 className="text-3xl font-bold font-sans text-slate-950 border-b border-muted max-w-2xl mx-auto pb-1">
                 {printData.recipientName}
               </h3>
-              
+
               {printData.type === "participacao" && (
                 <p className="text-base text-slate-800 leading-relaxed font-sans px-8">
                   Pela participação ativa na <strong>I Mostra de Projetos Integradores</strong> promovida pelo UniSENAI SP - Campus Sorocaba, realizada no Ciclo de Inovação 2026.
@@ -411,7 +407,7 @@ export default function Certificates() {
 
               {printData.type === "avaliador" && (
                 <p className="text-base text-slate-800 leading-relaxed font-sans px-8">
-                  Pela valiosa cooperação e atuação como **Membro da Banca Examinadora / Avaliador** das apresentações acadêmicas durante a <strong>I Mostra de Projetos Integradores</strong> UniSENAI SP.
+                  Pela valiosa cooperação e atuação como <strong>Membro da Banca Examinadora / Avaliador</strong> das apresentações acadêmicas durante a <strong>I Mostra de Projetos Integradores</strong> UniSENAI SP.
                 </p>
               )}
 
@@ -429,7 +425,10 @@ export default function Certificates() {
 
             {/* Content Bottom / Signatures */}
             <div className="text-center pt-8 pb-4 z-10 px-16 font-sans">
-              <div className="space-y-1 mx-auto max-w-xs">
+              <div className="space-y-1 mx-auto max-w-xs flex flex-col items-center">
+                <div className="h-12 flex items-end justify-center mb-1">
+                  <img src="/img/signature.png" alt="Assinatura Lucas Miguel" className="max-h-12 object-contain select-none" />
+                </div>
                 <div className="border-b border-slate-400 w-56 mx-auto mb-2" />
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-800">Lucas Miguel Leal da Silva</p>
                 <p className="text-[10px] text-slate-500">Coordenador de Campus</p>
