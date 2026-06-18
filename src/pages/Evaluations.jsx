@@ -86,6 +86,17 @@ export default function Evaluations() {
     enabled: !!user && !isTeacher,
   });
 
+  const { data: myCriteriaLists = [] } = useQuery({
+    queryKey: ["my-criteria-lists", user?.email],
+    queryFn: () => CriteriaService.listMine(),
+    enabled: !!user && isTeacher,
+  });
+
+  const { data: myEvaluations = [] } = useQuery({
+    queryKey: ["my-evaluations"],
+    queryFn: () => EvaluationService.listMine(),
+  });
+
   const assignmentsData = assignmentsRes?.data || [];
   const assignmentMessage = assignmentsRes?.message || "";
 
@@ -105,17 +116,6 @@ export default function Evaluations() {
       if (evaluatedIds.includes(p.id) && p.id !== selectedProjectId) return false;
       return true;
     });
-
-  const { data: myCriteriaLists = [] } = useQuery({
-    queryKey: ["my-criteria-lists", user?.email],
-    queryFn: () => CriteriaService.listMine(),
-    enabled: !!user && isTeacher,
-  });
-
-  const { data: myEvaluations = [] } = useQuery({
-    queryKey: ["my-evaluations"],
-    queryFn: () => EvaluationService.listMine(),
-  });
 
   const selectedLists = myCriteriaLists.filter((l) => selectedListIds.includes(l.id));
   const allSelectedCriteria = selectedLists.flatMap((list) =>
