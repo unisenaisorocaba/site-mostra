@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectLabel, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X, Pencil } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
@@ -116,6 +116,23 @@ export default function Evaluations() {
       if (evaluatedIds.includes(p.id) && p.id !== selectedProjectId) return false;
       return true;
     });
+
+  const projectsByClass = useMemo(() => {
+    const groups = {};
+    filteredProjects.forEach((p) => {
+      const className = p.className || "Sem Turma";
+      if (!groups[className]) {
+        groups[className] = [];
+      }
+      groups[className].push(p);
+    });
+    return Object.keys(groups)
+      .sort((a, b) => a.localeCompare(b))
+      .reduce((acc, key) => {
+        acc[key] = groups[key];
+        return acc;
+      }, {});
+  }, [filteredProjects]);
 
   const selectedLists = myCriteriaLists.filter((l) => selectedListIds.includes(l.id));
   const allSelectedCriteria = selectedLists.flatMap((list) =>
@@ -325,12 +342,18 @@ export default function Evaluations() {
                 <SelectValue placeholder="Selecione um projeto" />
               </SelectTrigger>
               <SelectContent>
-                {filteredProjects.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.project_number ? `#${p.project_number} - ` : ""}
-                    {p.className ? `[${p.className}] ` : ""}
-                    {p.title} {p.team_name ? `— ${p.team_name}` : ""}
-                  </SelectItem>
+                {Object.entries(projectsByClass).map(([className, classProjects]) => (
+                  <SelectGroup key={className}>
+                    <SelectLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-muted/20 px-2 py-1.5">
+                      {className}
+                    </SelectLabel>
+                    {classProjects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.project_number ? `#${p.project_number} - ` : ""}
+                        {p.title} {p.team_name ? `— ${p.team_name}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>
