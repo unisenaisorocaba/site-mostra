@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { ProjectService, GroupService, UserService, EvaluationService } from "@/services";
+import ProjectService from "@/services/projectService";
+import GroupService from "@/services/groupService";
+import UserService from "@/services/userService";
+import EvaluationService from "@/services/evaluationService";
 import { useCategories } from "@/hooks/useCategories";
 import { useNavigate } from "react-router-dom";
 

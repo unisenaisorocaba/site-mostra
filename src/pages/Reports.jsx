@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { EvaluationService } from "@/services";
+import EvaluationService from "@/services/evaluationService";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronRight, FileText } from "lucide-react";
 

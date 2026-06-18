@@ -7,7 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { Star, ChevronRight, X, Pencil } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
-import { ProjectService, EvaluationService, CriteriaService, UserService, AssignmentService, PhotoService, SettingService } from "@/services";
+import ProjectService from "@/services/projectService";
+import EvaluationService from "@/services/evaluationService";
+import CriteriaService from "@/services/criteriaService";
+import UserService from "@/services/userService";
+import AssignmentService from "@/services/assignmentService";
+import PhotoService from "@/services/photoService";
+import SettingService from "@/services/settingService";
 
 // Fixed criteria for student banner evaluations
 const BANNER_CRITERIA = [

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { UserService, ProjectService, AssignmentService } from "@/services";
+import UserService from "@/services/userService";
+import ProjectService from "@/services/projectService";
+import AssignmentService from "@/services/assignmentService";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Trash2, UserCheck, ChevronRight } from "lucide-react";
