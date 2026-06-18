@@ -7,7 +7,7 @@ export default function AboutSection() {
 
   const { data: responseData } = useQuery({
     queryKey: ["about-section-photos"],
-    queryFn: () => PhotoService.listAll(),
+    queryFn: () => PhotoService.listAll({ page: 1, limit: 1000 }),
   });
 
   useEffect(() => {
