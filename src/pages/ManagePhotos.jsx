@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, Trash2, Image } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { PhotoService } from "@/services";
+import { PhotoService, UserService } from "@/services";
 
 const categoryLabels = {
   abertura: "Abertura",
@@ -29,11 +28,39 @@ export default function ManagePhotos() {
     queryFn: () => PhotoService.listMine(),
   });
 
+  const { data: user } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => UserService.me(),
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile", user?.email],
+    queryFn: () => UserService.myProfile(),
+    enabled: !!user,
+  });
+
+  const isAdmin = user?.role === "ADMIN" || user?.role === "admin";
+  const isTeacher = isAdmin || profile?.user_type === "professor";
+
+  const canDelete = (photo) => {
+    if (isAdmin || isTeacher) return true;
+    const createdTime = new Date(photo.created_date).getTime();
+    const diffMs = Date.now() - createdTime;
+    return diffMs <= 60 * 60 * 1000; // 1 hour
+  };
+
   const deleteMutation = useMutation({
     mutationFn: (id) => PhotoService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-photos"] });
       toast({ title: "Foto excluída." });
+    },
+    onError: (err) => {
+      toast({
+        title: "Erro ao excluir foto",
+        description: err.response?.data?.error || err.message || "Erro desconhecido",
+        variant: "destructive",
+      });
     },
   });
 
@@ -104,10 +131,12 @@ export default function ManagePhotos() {
                 </span>
                 {photo.caption && <p className="text-xs text-muted-foreground line-clamp-2">{photo.caption}</p>}
               </div>
-              <button onClick={() => { if (confirm("Excluir esta foto?")) deleteMutation.mutate(photo.id); }}
-                className="absolute top-2 right-2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <Trash2 className="w-4 h-4 text-destructive" />
-              </button>
+              {canDelete(photo) && (
+                <button onClick={() => { if (confirm("Excluir esta foto?")) deleteMutation.mutate(photo.id); }}
+                  className="absolute top-2 right-2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </button>
+              )}
             </div>
           ))}
         </div>
