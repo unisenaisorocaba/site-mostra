@@ -13,9 +13,9 @@ export default function Home() {
       <HeroSection />
       <StatsBar />
       <AboutSection />
+      <FeaturedProjects />
       <AgendaSection />
       <MapSection />
-      <FeaturedProjects />
       <CampusSection />
     </div>
   );

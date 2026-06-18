@@ -1,6 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import PhotoService from "@/services/photoService";
 
 export default function AboutSection() {
+  const [selectedPhoto, setSelectedPhoto] = useState("https://unisenaissorocaba.s3.sa-east-1.amazonaws.com/gallery/1781788841344-WhatsApp%20Image%202026-06-18%20at%2009.58.05%20(16).jpeg");
+
+  const { data: responseData } = useQuery({
+    queryKey: ["about-section-photos"],
+    queryFn: () => PhotoService.listAll(),
+  });
+
+  useEffect(() => {
+    const photos = responseData?.data || [];
+    if (photos.length > 0) {
+      const randomIndex = Math.floor(Math.random() * photos.length);
+      setSelectedPhoto(photos[randomIndex].photo_url);
+    }
+  }, [responseData]);
+
   return (
     <section className="max-w-7xl mx-auto px-6 py-16 md:py-24">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -22,7 +39,7 @@ export default function AboutSection() {
         <div className="lg:col-span-5">
           <div className="relative border border-border bg-white p-2">
             <img
-              src="https://images.unsplash.com/photo-1581092921461-eab62e97a780?w=600&q=80"
+              src={selectedPhoto}
               alt="Estudantes em laboratório"
               className="w-full h-[300px] md:h-[350px] object-cover"
             />
