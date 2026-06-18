@@ -205,9 +205,9 @@ export default function Certificates() {
         {activeTab === "rankings" && (
           <div className="space-y-8">
             <div className="bg-white border border-border p-6">
-              <h2 className="text-xl font-bold font-heading mb-2">Painel de Premiações</h2>
+              <h2 className="text-xl font-bold font-heading mb-2">Painel de Premiações e Classificação</h2>
               <p className="text-sm text-muted-foreground">
-                Aqui são listados os 3 melhores projetos de cada turma (com base no cadastro do aluno que submeteu o projeto) e os 3 melhores no geral. Empates foram considerados, premiando todos os empatados com as maiores pontuações.
+                Aqui são listados todos os projetos da Mostra classificados do melhor para o pior. O certificado de melhor por turma é concedido apenas ao 1º colocado (incluindo empates), e na classificação geral aos 3 primeiros colocados (incluindo empates).
               </p>
             </div>
 
@@ -219,7 +219,7 @@ export default function Certificates() {
                 <div className="bg-white border border-border">
                   <div className="bg-muted/40 border-b border-border px-6 py-4 flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-amber-500" />
-                    <h3 className="font-bold text-base uppercase tracking-wider">3 Melhores no Geral (Premiação Principal)</h3>
+                    <h3 className="font-bold text-base uppercase tracking-wider">Classificação Geral (do melhor para o pior)</h3>
                   </div>
                   {rankings.overallRankings?.length === 0 ? (
                     <p className="p-6 text-sm text-muted-foreground">Nenhum projeto avaliado com pontuação suficiente ainda.</p>
@@ -233,8 +233,12 @@ export default function Certificates() {
                                 {p.project_number ? `#${p.project_number} - ` : ""}
                                 {p.title}
                               </span>
-                              <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 border border-amber-300">
-                                {idx + 1}º LUGAR GERAL
+                              <span className={`text-[9px] font-bold px-2 py-0.5 border ${
+                                p.isOverallWinner 
+                                  ? "bg-amber-100 text-amber-800 border-amber-300" 
+                                  : "bg-slate-100 text-slate-600 border-slate-200"
+                              }`}>
+                                {p.rank}º LUGAR GERAL
                               </span>
                             </div>
                             <p className="text-xs text-muted-foreground">
@@ -249,7 +253,7 @@ export default function Certificates() {
                               <Star className="w-4 h-4 text-primary" />
                               <span className="font-bold text-primary text-sm">{p.score.toFixed(2)}</span>
                             </div>
-                            {isTeacher && (
+                            {isTeacher && p.isOverallWinner && (
                               <Button
                                 onClick={() => openPrintPreview({
                                   type: "melhor_projeto",
@@ -262,8 +266,8 @@ export default function Certificates() {
                                     score: p.score
                                   }
                                 })}
-                                disabled={rankings.evaluationsOpen}
-                                title={rankings.evaluationsOpen ? "Disponível apenas após o encerramento do período de avaliações" : ""}
+                                disabled={rankings.evaluationsOpen && !isAdmin}
+                                title={rankings.evaluationsOpen && !isAdmin ? "Disponível apenas após o encerramento do período de avaliações" : ""}
                                 size="sm"
                                 variant="outline"
                                 className="rounded-none text-xs uppercase font-bold gap-1.5 border-2 hover:bg-primary hover:text-primary-foreground"
@@ -280,7 +284,7 @@ export default function Certificates() {
 
                 {/* Class Rankings */}
                 <div className="space-y-6">
-                  <h3 className="font-bold text-lg font-heading">3 Melhores por Turma</h3>
+                  <h3 className="font-bold text-lg font-heading">Classificação por Turma</h3>
                   {Object.keys(rankings.classRankings || {}).length === 0 ? (
                     <div className="bg-white border border-border p-6 text-center text-muted-foreground">
                       Nenhum ranking por turma gerado ainda.
@@ -304,8 +308,12 @@ export default function Certificates() {
                                         {p.project_number ? `#${p.project_number} - ` : ""}
                                         {p.title}
                                       </span>
-                                      <span className="bg-blue-100 text-blue-800 text-[9px] font-bold px-2 py-0.5 border border-blue-300">
-                                        {idx + 1}º LUGAR NA TURMA
+                                      <span className={`text-[9px] font-bold px-2 py-0.5 border ${
+                                        p.isClassWinner 
+                                          ? "bg-blue-100 text-blue-800 border-blue-300" 
+                                          : "bg-slate-100 text-slate-600 border-slate-200"
+                                      }`}>
+                                        {p.rank}º LUGAR NA TURMA
                                       </span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
@@ -320,7 +328,7 @@ export default function Certificates() {
                                       <Star className="w-3.5 h-3.5 text-primary" />
                                       <span className="font-bold text-primary text-xs">{p.score.toFixed(2)}</span>
                                     </div>
-                                    {isTeacher && (
+                                    {isTeacher && p.isClassWinner && (
                                       <Button
                                         onClick={() => openPrintPreview({
                                           type: "melhor_projeto",
@@ -333,8 +341,8 @@ export default function Certificates() {
                                             score: p.score
                                           }
                                         })}
-                                        disabled={rankings.evaluationsOpen}
-                                        title={rankings.evaluationsOpen ? "Disponível apenas após o encerramento do período de avaliações" : ""}
+                                        disabled={rankings.evaluationsOpen && !isAdmin}
+                                        title={rankings.evaluationsOpen && !isAdmin ? "Disponível apenas após o encerramento do período de avaliações" : ""}
                                         size="sm"
                                         variant="outline"
                                         className="rounded-none text-xs uppercase font-bold gap-1.5 border-2 hover:bg-primary hover:text-primary-foreground"
@@ -426,7 +434,7 @@ export default function Certificates() {
               {printData.type === "melhor_projeto" && (
                 <div className="space-y-2">
                   <p className="text-base text-slate-800 leading-relaxed font-sans px-8">
-                    Pelo excelente desempenho acadêmico, consagrando o projeto <strong>"{printData.details.projectTitle}"</strong> da equipe <strong>"{printData.details.teamName}"</strong> como um dos 3 melhores projetos da Mostra na categoria <strong>{printData.details.category}</strong>.
+                    Pelo excelente desempenho acadêmico, consagrando o projeto <strong>"{printData.details.projectTitle}"</strong> da equipe <strong>"{printData.details.teamName}"</strong> como {printData.details.category === "Geral" ? "um dos 3 melhores projetos" : "o melhor projeto"} da Mostra na categoria <strong>{printData.details.category}</strong>.
                   </p>
                   <p className="text-sm font-sans text-slate-600 font-semibold">
                     Pontuação Média: {printData.details.score.toFixed(2)} / 10.00
@@ -435,8 +443,13 @@ export default function Certificates() {
               )}
             </div>
 
+            {/* Date */}
+            <div className="text-center text-sm italic text-slate-700 z-10 pt-4">
+              Sorocaba, 18 de junho de 2026
+            </div>
+
             {/* Content Bottom / Signatures */}
-            <div className="text-center pt-8 pb-4 z-10 px-16 font-sans">
+            <div className="text-center pt-4 pb-4 z-10 px-16 font-sans">
               <div className="space-y-1 mx-auto max-w-xs flex flex-col items-center">
                 <div className="h-12 flex items-end justify-center mb-1">
                   <img src="/img/signature.png" alt="Assinatura Lucas Miguel" className="max-h-12 object-contain select-none" />
