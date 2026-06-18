@@ -237,7 +237,8 @@ export default function Evaluations() {
   const getProjectTitle = (id) => {
     const p = projects.find((x) => x.id === id);
     if (!p) return id;
-    return p.project_number ? `#${p.project_number} - ${p.title}` : p.title;
+    const turmaStr = p.className ? `[${p.className}] ` : "";
+    return p.project_number ? `#${p.project_number} - ${turmaStr}${p.title}` : `${turmaStr}${p.title}`;
   };
 
   const isFirstEvaluation = myEvaluations.length === 0;
@@ -315,6 +316,7 @@ export default function Evaluations() {
                 {filteredProjects.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
                     {p.project_number ? `#${p.project_number} - ` : ""}
+                    {p.className ? `[${p.className}] ` : ""}
                     {p.title} {p.team_name ? `— ${p.team_name}` : ""}
                   </SelectItem>
                 ))}

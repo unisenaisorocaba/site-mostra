@@ -65,6 +65,8 @@ export default function Reports() {
                   <th className="px-6 py-4">Turma / Curso</th>
                   <th className="px-6 py-4 text-center">Dia 01 (16/06)</th>
                   <th className="px-6 py-4 text-center">Dia 02 (17/06)</th>
+                  <th className="px-6 py-4 text-center">Nota Projeto</th>
+                  <th className="px-6 py-4 text-center">Nota Award</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border text-xs">
@@ -92,6 +94,12 @@ export default function Reports() {
                       }`}>
                         {row.evaluatedDay2} / {row.assignedDay2}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold font-mono">
+                      {row.projectGrade || "—"}
+                    </td>
+                    <td className="px-6 py-4 text-center font-bold font-mono">
+                      {row.awardGrade || "—"}
                     </td>
                   </tr>
                 ))}
