@@ -14,12 +14,17 @@ export default function ProjectCard({ project, featured = false }) {
         to={`/projetos/${project.id}`}
         className="md:col-span-2 md:row-span-2 relative group overflow-hidden border border-border bg-white flex flex-col hover:border-primary transition-colors"
       >
-        <div className="h-64 md:h-2/3 overflow-hidden">
+        <div className="h-64 md:h-2/3 overflow-hidden relative">
           <img
             src={image}
             alt={project.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
+          {project.show_grade_publicly && project.grade_work && project.grade_work !== "—" && (
+            <div className="absolute top-4 right-4 bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-1.5 shadow-md uppercase tracking-wider z-10">
+              Nota: {project.grade_work}
+            </div>
+          )}
         </div>
         <div className="p-6 md:p-8 flex-1 flex flex-col border-l-4 border-primary">
           <span className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
@@ -49,12 +54,17 @@ export default function ProjectCard({ project, featured = false }) {
       to={`/projetos/${project.id}`}
       className="border border-border bg-white hover:border-primary transition-all group"
     >
-      <div className="h-48 overflow-hidden border-b border-border">
+      <div className="h-48 overflow-hidden border-b border-border relative">
         <img
           src={image}
           alt={project.title}
           className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
         />
+        {project.show_grade_publicly && project.grade_work && project.grade_work !== "—" && (
+          <div className="absolute top-4 right-4 bg-primary text-primary-foreground font-mono font-bold text-xs px-2.5 py-1.5 shadow-md uppercase tracking-wider z-10">
+            Nota: {project.grade_work}
+          </div>
+        )}
       </div>
       <div className="p-5">
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2 block">
