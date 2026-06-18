@@ -533,6 +533,7 @@ export default function MyProjects() {
         <div className="space-y-4">
           {projects.map((project) => {
             const st = statusConfig[project.status] || statusConfig.rascunho;
+            const hasEvaluated = user && Array.isArray(project.evaluations) && project.evaluations.some(ev => ev.created_by.toLowerCase() === user.email.toLowerCase());
             return (
               <div key={project.id} className="bg-white border border-border">
                 {/* Main Card Content: Stack vertically on mobile, row on desktop */}
@@ -555,6 +556,17 @@ export default function MyProjects() {
                             <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-purple-100 text-purple-700 flex items-center gap-1">
                               <Mic className="w-3 h-3" /> ORAL {project.oral_approved ? "✓ APROVADO" : "- PENDENTE"}
                             </span>
+                          )}
+                          {isTeacherOrAdmin && project.status !== "rascunho" && (
+                            hasEvaluated ? (
+                              <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-green-600 text-white flex items-center gap-1">
+                                ✓ AVALIADO
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-bold bg-yellow-100 text-yellow-700 border border-yellow-300 flex items-center gap-1">
+                                PENDENTE
+                              </span>
+                            )
                           )}
                         </div>
                       </div>

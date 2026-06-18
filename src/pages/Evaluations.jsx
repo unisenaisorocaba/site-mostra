@@ -83,6 +83,8 @@ export default function Evaluations() {
   const assignmentsData = assignmentsRes?.data || [];
   const assignmentMessage = assignmentsRes?.message || "";
 
+  const evaluatedIds = myEvaluations.map(ev => ev.project_id);
+
   const filteredProjects = isTeacher
     ? projects.filter((p) => {
       if (user) {
@@ -90,9 +92,13 @@ export default function Evaluations() {
         const isMember = (p.members || []).some((m) => m.email === user.email);
         if (isCreator || isMember) return false;
       }
+      if (evaluatedIds.includes(p.id) && p.id !== selectedProjectId) return false;
       return true;
     })
-    : assignmentsData.map(a => a.project).filter(Boolean);
+    : assignmentsData.map(a => a.project).filter(Boolean).filter((p) => {
+      if (evaluatedIds.includes(p.id) && p.id !== selectedProjectId) return false;
+      return true;
+    });
 
   const { data: myCriteriaLists = [] } = useQuery({
     queryKey: ["my-criteria-lists", user?.email],
