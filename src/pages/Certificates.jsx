@@ -207,7 +207,7 @@ export default function Certificates() {
             <div className="bg-white border border-border p-6">
               <h2 className="text-xl font-bold font-heading mb-2">Painel de Premiações e Classificação</h2>
               <p className="text-sm text-muted-foreground">
-                Aqui são listados todos os projetos da Mostra classificados do melhor para o pior. O certificado de melhor por turma é concedido apenas ao 1º colocado (incluindo empates), e na classificação geral aos 3 primeiros colocados (incluindo empates).
+                Aqui são listados os 3 melhores projetos no Geral e a classificação completa por Turma. O certificado por turma é concedido apenas ao 1º colocado (incluindo empates), e na classificação geral aos 3 primeiros colocados (incluindo empates).
               </p>
             </div>
 
@@ -219,7 +219,7 @@ export default function Certificates() {
                 <div className="bg-white border border-border">
                   <div className="bg-muted/40 border-b border-border px-6 py-4 flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-amber-500" />
-                    <h3 className="font-bold text-base uppercase tracking-wider">Classificação Geral (do melhor para o pior)</h3>
+                    <h3 className="font-bold text-base uppercase tracking-wider">3 Melhores no Geral (Premiação Principal)</h3>
                   </div>
                   {rankings.overallRankings?.length === 0 ? (
                     <p className="p-6 text-sm text-muted-foreground">Nenhum projeto avaliado com pontuação suficiente ainda.</p>
