@@ -117,6 +117,19 @@ export default function Evaluations() {
       return true;
     });
 
+  const sortedEvaluations = useMemo(() => {
+    return [...myEvaluations].sort((a, b) => {
+      const projA = projects.find((p) => p.id === a.project_id);
+      const projB = projects.find((p) => p.id === b.project_id);
+      const numA = projA?.project_number ?? 999999;
+      const numB = projB?.project_number ?? 999999;
+      if (numA !== numB) {
+        return numA - numB;
+      }
+      return new Date(b.created_date) - new Date(a.created_date);
+    });
+  }, [myEvaluations, projects]);
+
   const projectsByClass = useMemo(() => {
     const groups = {};
     filteredProjects.forEach((p) => {
@@ -125,6 +138,14 @@ export default function Evaluations() {
         groups[className] = [];
       }
       groups[className].push(p);
+    });
+    // Sort projects within each group by project_number
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort((a, b) => {
+        const numA = a.project_number ?? 999999;
+        const numB = b.project_number ?? 999999;
+        return numA - numB;
+      });
     });
     return Object.keys(groups)
       .sort((a, b) => a.localeCompare(b))
@@ -409,7 +430,7 @@ export default function Evaluations() {
               </div>
             ) : (
               <div className="space-y-3">
-                {myEvaluations.map((ev) => (
+                {sortedEvaluations.map((ev) => (
                   <div key={ev.id} className="bg-white border border-border p-4 hover:border-primary transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1 min-w-0 pr-2">

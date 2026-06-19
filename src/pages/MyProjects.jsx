@@ -5,10 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Image, Link, Github, Users } from "lucide-react";
+import { Plus, Upload, Pencil, Trash2, Send, ChevronRight, FolderOpen, Mic, Link, Github, Users } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import ProjectService from "@/services/projectService";
-import GroupService from "@/services/groupService";
 import UserService from "@/services/userService";
 import EvaluationService from "@/services/evaluationService";
 import { useCategories } from "@/hooks/useCategories";
@@ -62,7 +61,47 @@ const ProjectGradesDetail = ({ project }) => {
   };
 
   return (
-    <div className="mt-4 p-4 border border-border bg-muted/20 w-full">
+    <div className="mt-4 p-4 border border-border bg-muted/20 w-full space-y-4">
+      {/* Panorama de Notas */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Nota dos Alunos */}
+        <div className="bg-white border border-border p-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Média dos Alunos</p>
+          <div className="text-2xl font-bold text-primary">
+            {averageData.studentAverage !== undefined && averageData.studentAverage !== 0 ? averageData.studentAverage.toFixed(1) : "—"}
+          </div>
+          <p className="text-[9px] text-muted-foreground uppercase mt-1">
+            {averageData.studentEvaluationsCount || 0} {averageData.studentEvaluationsCount === 1 ? "avaliação" : "avaliações"}
+          </p>
+        </div>
+
+        {/* Nota dos Professores */}
+        <div className="bg-white border border-border p-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Média dos Professores</p>
+          <div className="text-2xl font-bold text-primary">
+            {averageData.teacherAverage !== undefined && averageData.teacherAverage !== 0 ? averageData.teacherAverage.toFixed(1) : "—"}
+          </div>
+          <p className="text-[9px] text-muted-foreground uppercase mt-1">
+            {averageData.teacherEvaluationsCount || 0} {averageData.teacherEvaluationsCount === 1 ? "avaliação" : "avaliações"}
+          </p>
+        </div>
+
+        {/* Nota Final ou Mostra */}
+        <div className="bg-white border border-border p-3 text-center">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">
+            {project.eval_option === 1 ? "Nota da Mostra" : "Nota Final"}
+          </p>
+          <div className="text-2xl font-bold text-foreground">
+            {project.eval_option === 1 
+              ? (project.grade_award !== undefined ? project.grade_award : "—") 
+              : (project.grade_work !== undefined ? project.grade_work : "—")}
+          </div>
+          <p className="text-[9px] text-muted-foreground uppercase mt-1">
+            {project.eval_option === 1 ? "Opção 1 (80% Trab + 20% Alunos)" : "Opção 2 (Pesos P/A/O)"}
+          </p>
+        </div>
+      </div>
+
       <div className="mb-4 bg-white p-3 border border-border">
         <div className="flex justify-between items-start mb-2">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Composição da Nota Final</p>
@@ -166,9 +205,17 @@ export default function MyProjects() {
   const [form, setForm] = useState(emptyProject);
   const [keywordsText, setKeywordsText] = useState("");
   const [uploading, setUploading] = useState({});
+  const [expandedGrades, setExpandedGrades] = useState({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const toggleGrades = (projectId) => {
+    setExpandedGrades((prev) => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
+  };
 
   const { categories = [], getCategoryLabel } = useCategories();
 
@@ -657,7 +704,9 @@ export default function MyProjects() {
                       </div>
 
                       {/* Grades Details */}
-                      {isStudent && <ProjectGradesDetail project={project} />}
+                      {(isStudent || (isTeacherOrAdmin && expandedGrades[project.id])) && (
+                        <ProjectGradesDetail project={project} />
+                      )}
                     </div>
                   </div>
 
@@ -665,13 +714,23 @@ export default function MyProjects() {
                   {(isTeacherOrAdmin || (isStudent && project.status === "rascunho")) && (
                     <div className="flex flex-wrap items-center gap-2 lg:self-start w-full lg:w-auto justify-end border-t lg:border-t-0 pt-3 lg:pt-0 mt-2 lg:mt-0">
                       {isTeacherOrAdmin && project.status !== "rascunho" && (
-                        <Button
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/avaliacoes?projectId=${project.id}`)}
-                          className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold flex-1 sm:flex-initial h-10 lg:h-9"
-                        >
-                          Avaliar
-                        </Button>
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleGrades(project.id)}
+                            className="border-border text-xs uppercase font-bold flex-1 sm:flex-initial h-10 lg:h-9"
+                          >
+                            {expandedGrades[project.id] ? "Ocultar Notas" : "Panorama de Notas"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => navigate(`/dashboard/avaliacoes?projectId=${project.id}`)}
+                            className="bg-primary text-primary-foreground rounded-none text-xs uppercase font-bold flex-1 sm:flex-initial h-10 lg:h-9"
+                          >
+                            Avaliar
+                          </Button>
+                        </>
                       )}
                       {(!isStudent || project.status === "rascunho") && (
                         <Button variant="ghost" size="sm" onClick={() => openEdit(project)} className="w-10 h-10 lg:w-9 lg:h-9 border border-border lg:border-none rounded-none shrink-0 flex items-center justify-center"><Pencil className="w-4 h-4" /></Button>
