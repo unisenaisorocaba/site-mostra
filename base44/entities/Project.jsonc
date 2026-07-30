@@ -1,0 +1,128 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Nome do projeto"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada do projeto"
+    },
+    "abstract": {
+      "type": "string",
+      "description": "Resumo do projeto"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "mecatronica",
+        "software",
+        "gestao",
+        "logistica",
+        "energia",
+        "quimica",
+        "automacao",
+        "outros"
+      ],
+      "description": "Categoria do projeto"
+    },
+    "team_id": {
+      "type": "string",
+      "description": "ID do grupo associado"
+    },
+    "team_name": {
+      "type": "string",
+      "description": "Nome do grupo/equipe"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Membros da equipe"
+    },
+    "advisor": {
+      "type": "string",
+      "description": "Nome do orientador"
+    },
+    "room": {
+      "type": "string",
+      "description": "Sala/local de apresenta\u00e7\u00e3o (preenchida por admin)"
+    },
+    "schedule_time": {
+      "type": "string",
+      "description": "Hor\u00e1rio da apresenta\u00e7\u00e3o oral (preenchido por admin)"
+    },
+    "presentation_type": {
+      "type": "string",
+      "enum": [
+        "banner",
+        "oral"
+      ],
+      "default": "banner",
+      "description": "Tipo de apresenta\u00e7\u00e3o desejada pelo aluno"
+    },
+    "oral_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aprovado para apresenta\u00e7\u00e3o oral pelos admins"
+    },
+    "banner_url": {
+      "type": "string",
+      "description": "URL do banner do projeto (obrigat\u00f3rio)"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "URL da imagem thumbnail"
+    },
+    "slides_url": {
+      "type": "string",
+      "description": "URL da apresenta\u00e7\u00e3o (slides) para apresenta\u00e7\u00e3o oral"
+    },
+    "article_url": {
+      "type": "string",
+      "description": "URL do artigo cient\u00edfico (PDF)"
+    },
+    "pitch_youtube_url": {
+      "type": "string",
+      "description": "Link do pitch no YouTube"
+    },
+    "github_url": {
+      "type": "string",
+      "description": "Link do reposit\u00f3rio no GitHub"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "submetido",
+        "aprovado",
+        "reprovado"
+      ],
+      "default": "rascunho",
+      "description": "Status da submiss\u00e3o"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palavras-chave"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "team_name"
+  ]
+}

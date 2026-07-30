@@ -1,0 +1,45 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio (\u00fanico)"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Nome completo"
+    },
+    "registration": {
+      "type": "string",
+      "description": "Matr\u00edcula/RA (para alunos)"
+    },
+    "user_type": {
+      "type": "string",
+      "enum": [
+        "aluno",
+        "professor"
+      ],
+      "default": "aluno",
+      "description": "Tipo de usu\u00e1rio"
+    },
+    "course": {
+      "type": "string",
+      "description": "Curso (para alunos)"
+    },
+    "department": {
+      "type": "string",
+      "description": "Departamento (para professores)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Usu\u00e1rio ativo"
+    }
+  },
+  "required": [
+    "user_email",
+    "full_name",
+    "user_type"
+  ]
+}
